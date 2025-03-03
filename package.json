@@ -1,0 +1,86 @@
+{
+  "name": "app",
+  "version": "0.1.0",
+  "private": true,
+  
+  
+"scripts": {
+  "dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
+  
+  "dev:local": "cross-env NODE_ENV=local npm run dev:dev",
+  
+  "dev:dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
+  
+  "dev:next": "next dev",
+  
+  "dev:server": "node app/server/server.js",
+  
+  "build": "next build",
+  
+  "start": "next start"
+}
+
+
+
+
+    ,
+  
+  
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@measured/puck": "^0.18.2",
+    "@monaco-editor/react": "^4.7.0",
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-checkbox": "^1.1.4",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-menubar": "^1.1.6",
+    "@radix-ui/react-navigation-menu": "^1.2.5",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "@tailwindcss/vite": "^4.0.4",
+    "axios": "^1.7.9",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "grapesjs": "^0.22.5",
+    "grapesjs-blocks-basic": "^1.0.2",
+    "grapesjs-preset-webpage": "^1.0.3",
+    "http-proxy-middleware": "^3.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.471.2",
+    "mongodb": "^6.13.0",
+    "mongoos": "^0.0.1-security",
+    "mongoose": "^8.9.5",
+    "multer": "^1.4.5-lts.1",
+    "next": "15.1.4",
+    "nodemailer": "^6.10.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "react-spinners": "^0.15.0",
+    "request": "^2.88.2",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.9",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17"
+  }
+}

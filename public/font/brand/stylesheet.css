@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Aglet Sans';
+    src: url('AgletSans-Black.woff2') format('woff2'),
+        url('AgletSans-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
