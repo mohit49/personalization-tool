@@ -1,6 +1,10 @@
 const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
+
 const fs = require('fs');
+
 const path = require('path');
+//const envFile = `.env.${process.env.NODE_ENV || 'development'}`; // Default to development
 
 // Create a reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({

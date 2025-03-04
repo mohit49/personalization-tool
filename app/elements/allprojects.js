@@ -39,7 +39,7 @@ export default function ProjectList() {
     );
   }
 
-  const imageDt = process.env.NEXT_PUBLIC_NODE_API_URL;
+  const imageDt = process.env.NEXT_PUBLIC_NODE_API_URL +'/static';
 
   return (
     <div className="mt-4">
@@ -55,7 +55,7 @@ export default function ProjectList() {
                   </CardHeader>
                   <CardContent>
                     <Image
-                      src={imageDt + project.imageURL}
+                      src={imageDt + project.imageURL.toLowerCase()}
                       className="object-cover w-[100%] !h-[80px]"
                       alt="Project Image"
                       width={300}

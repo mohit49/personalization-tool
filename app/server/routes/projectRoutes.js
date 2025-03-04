@@ -39,7 +39,7 @@ router.post("/project", authenticateToken, upload.single("image"), async (req, r
     }
 
     const dateFolder = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-    const imageURL = `/uploads/${projectName}/${dateFolder}/logo/${req.file.filename}`;
+    const imageURL = `/uploads/${projectName.toLowerCase().replace(" ", "-")}/${dateFolder}/logo/${req.file.filename}`;
 
     const newProject = new Project({
       projectName,

@@ -1,6 +1,7 @@
 // Load the appropriate environment file based on NODE_ENV (local, development, production)
 const dotenv = require('dotenv');
-const envFile = `.env.${process.env.NODE_ENV || 'development'}`; // Default to development
+const path = require('path');
+const envFile = path.resolve(__dirname, '../../.env.' + (process.env.NODE_ENV || 'development'));
 dotenv.config({ path: envFile });
 
 const express = require("express");
@@ -35,6 +36,9 @@ app.use(
 // Middleware
 app.use(bodyParser.json());
 app.use(cookieParser());
+const uploadsPath = path.join(process.cwd(), 'public');
+
+app.use('/uploads', express.static(uploadsPath));
 app.use(express.static("public"));
 
 // ✅ MongoDB connection (Using either MongoDB URI or default localhost)
@@ -51,14 +55,14 @@ mongoose
   });
 
 // ✅ Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/auth", loginRoutes);
-app.use("/api/user", userProfile);
-app.use("/api/auth", verifyUser);
-app.use("/api/auth", projectRoutes); // Project API
-app.use("/api/auth", activityRoute); // Activity API
-app.use("/api", proxyRoute); // Proxy Route
-app.use("/api/auth", saveLaunchSettings); // Launch Settings API
+app.use("/auth", authRoutes);
+app.use("/auth", loginRoutes);
+app.use("/user", userProfile);
+app.use("/auth", verifyUser);
+app.use("/auth", projectRoutes); // Project API
+app.use("/auth", activityRoute); // Activity API
+app.use("/", proxyRoute); // Proxy Route
+app.use("/auth", saveLaunchSettings); // Launch Settings API
 
 // Default route
 app.get("/", (req, res) => {

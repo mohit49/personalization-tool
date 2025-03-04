@@ -80,7 +80,7 @@ export default function Dashboard() {
       <section className="w-full min-h-[800px] flex flex-col bg-[#f5f5f5] items-start !justify-top pt-[10px] pb-[50px]">
       {project &&  <div className="w-full flex flex-row justify-between items-center py-[10px] px-0 container">
             <div className="logo">
-            <div><img src={imageDt + project.imageURL} alt="Preview" className="w-[120px] h-auto " /></div>
+            <div><img src={imageDt+ '/static' + project.imageURL.toLowerCase()} alt="Preview" className="w-[120px] h-auto " /></div>
             <h3 className="font-brand mt-[10px]">{project.projectName}</h3>
             <h5 className="mt-[10px] text-[13px] mt-0">{project.domain}</h5>
             </div>
