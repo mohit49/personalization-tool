@@ -20,13 +20,20 @@ const activitySchema = new mongoose.Schema({
       changes: [
         {
           field: { type: String },
-          oldValue: { type: String },
-          newValue: { type: String }
+          oldValue: { type: mongoose.Schema.Types.Mixed },
+          newValue: { type: mongoose.Schema.Types.Mixed }
+          
         }
       ]
     }
   ],
-  htmlCode: { type: String }, // HTML code
+  htmlCode: [
+    {
+        type: { type: String, required: true },
+        selector: { type: String, required: true },
+        newText: { type: String, required: true }
+    }
+],
   cssCode: { type: String },  // CSS code
   jsCode: { type: String },   // JavaScript code
   jsonData: { type: mongoose.Schema.Types.Mixed }, // JSON data

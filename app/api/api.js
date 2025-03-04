@@ -350,6 +350,22 @@ export const fetchActivity = async (projectId, activityId) => {
 };
 
 
+export const updateActivity = async (projectId, activityId, activityData) => {
+  try {
+      const response = await axios.put(`${apiUrl}/api/auth/project/${projectId}/${activityId}/update`, activityData,  {
+        withCredentials: true, // Sends cookies or authentication headers
+        headers: {
+          'Content-Type': 'application/json',
+        } } );
+      console.log("Activity updated successfully:", response.data);
+      return response.data;
+  } catch (error) {
+      console.error("Error updating activity:", error.response?.data || error.message);
+      throw error;
+  }
+};
+
+
 
 
 

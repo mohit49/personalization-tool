@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import grapesjs from 'grapesjs';
-import { fetchActivity } from '@/app/api/api';
+import { fetchActivity , updateActivity } from '@/app/api/api';
 import { SendHorizontal, Trash2 } from "lucide-react"
-import 'grapesjs/dist/css/grapes.min.css';
-import 'grapesjs-preset-webpage';
+import EditTextPopup from '@/app/elements/edit-text';
+//import 'grapesjs/dist/css/grapes.min.css';
+//import 'grapesjs-preset-webpage';
 import Header from "@/include/header";
 const VisualEditor = () => {
+  let newChange = '';
   const [editor, setEditor] = useState(null);
   const [activity, setActivityData] = useState('');
   const [url, setUrl] = useState('');
@@ -16,6 +19,10 @@ const VisualEditor = () => {
   const [selectedElement, setSelectedElement] = useState(null);
   const [history, setHistory] = useState([]);
   const [changes, setChanges] = useState([]); // Track all changes
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [currentText, setCurrentText] = useState('');
+  const [currentElement, setCurrentElement] = useState(null);
+  const [dBChanges, setDbChanges] = useState([]);
   function getFullSelector(element) {
     let path = [];
     while (element && element.nodeType === 1) { // Ensure the element is an element node
@@ -42,6 +49,13 @@ const VisualEditor = () => {
     // Return the full selector path
     return path.join(' > ');
   }
+
+  const handleEditClick = (element) => {
+    setCurrentElement(element);
+    setCurrentText(element.innerHTML);
+    setIsPopupOpen(true);
+  };
+
   
   useEffect(() => {
     const url = window.location.pathname; // Get the current URL path
@@ -49,6 +63,7 @@ const VisualEditor = () => {
     
     const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
     const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
+
     fetchActivity(projectId, activityId)
     .then((data) => {
       setActivityData(data.activity);
@@ -77,18 +92,33 @@ const VisualEditor = () => {
   
         if (iframeRef.current) {
           const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
-          iframeDoc.open();
           
+          iframeDoc.open();
           iframeDoc.write(html);
           iframeDoc.close();
-
-          injectHighlightCSS(iframeDoc);
-          addHoverHighlighting(iframeDoc);
-          addContextMenu(iframeDoc);
-          enableDragAndDrop(iframeDoc);
-
-          saveStateToHistory(iframeDoc);
-        }
+      
+          // Wait for the iframe's document to fully load (DOMContentLoaded or load event)
+          iframeRef.current.onload = () => {
+              // These will only run after iframe content is ready
+              injectHighlightCSS(iframeDoc);
+              addHoverHighlighting(iframeDoc);
+              addContextMenu(iframeDoc);
+              enableDragAndDrop(iframeDoc);
+      
+              saveStateToHistory(iframeDoc);
+          };
+      
+          // Optional: If you want to use DOMContentLoaded inside the iframe itself
+          iframeDoc.addEventListener('DOMContentLoaded', () => {
+              injectHighlightCSS(iframeDoc);
+              addHoverHighlighting(iframeDoc);
+              addContextMenu(iframeDoc);
+              enableDragAndDrop(iframeDoc);
+      
+              saveStateToHistory(iframeDoc);
+          });
+      }
+      
       })
       .catch((error) => {
         console.error(error);
@@ -100,6 +130,49 @@ const VisualEditor = () => {
   const saveStateToHistory = (iframeDoc) => {
     const currentHTML = iframeDoc.documentElement.outerHTML;
     setHistory((prevHistory) => [...prevHistory, currentHTML]);
+  };
+
+  
+  const handleSaveText = (newText) => {
+    const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+    if (currentElement) {
+
+      currentElement.innerHTML = newText;
+       newChange = `Changed text of element with tag ${getFullSelector(currentElement).slice(0, 70)}... to <p>${newText}</p>`;
+    
+
+       
+       setDbChanges((prevHistory) => [...prevHistory, {
+        "type" : "modified",
+          "selector":  getFullSelector(currentElement),
+          "newText": newText
+        }
+       ]);
+ const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
+    const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
+       updateActivity(projectId, activityId, {
+        "type" : "modified",
+          "selector":  getFullSelector(currentElement),
+          "newText": newText
+        })
+    .then((data) => {
+        console.log("Update successful!", data);
+    })
+    .catch((error) => {
+        console.error("Update failed", error);
+    });
+
+  
+      console.log(dBChanges); // Handle the change log however you want
+
+      if (newChange) {
+        setChanges((prevChanges) => [...prevChanges, newChange]);
+        console.log(changes)
+        console.log(history)
+        saveStateToHistory(iframeDoc); // Save state after the change
+        setCurrentText(null)
+      }
+    }
   };
 
   // Handle the Undo action (Ctrl + Z)
@@ -238,16 +311,18 @@ const VisualEditor = () => {
     const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
     const element = selectedElement;
 
-    let newChange = '';
+   
 
     switch (action) {
       case 'edit-text':
+        
         if (element && element.innerHTML) {
-          const newText = prompt('Edit Text:', element.innerHTML);
-          if (newText !== null) {
-            element.innerHTML = newText;
-            newChange = `Changed text of element with tag ${getFullSelector(element).slice(0, 70)}... to  <p>${newText}</p>`;
-          }
+          handleEditClick(element);
+         
+         // if (newText !== null) {
+          //  element.innerHTML = newText;
+           // newChange = `Changed text of element with tag ${getFullSelector(element).slice(0, 70)}... to  <p>${newText}</p>`;
+         // }
         }
         break;
       case 'remove-element':
@@ -331,7 +406,7 @@ const VisualEditor = () => {
         }}
       >
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          <li onClick={() => handleMenuAction('edit-text')} style={{ padding: '8px', cursor: 'pointer' }}>
+          <li onClick={() => handleMenuAction('edit-text')}  style={{ padding: '8px', cursor: 'pointer' }}>
             Edit Text
           </li>
           <li onClick={() => handleMenuAction('remove-element')} style={{ padding: '8px', cursor: 'pointer' }}>
@@ -358,8 +433,24 @@ const VisualEditor = () => {
     );
   };
 
+  const removePer = (index) => {
+    const updatedHistory = history.filter((_, i) => i !== index+2);  // Remove item at `index`
+
+    console.log('Updated History:', updatedHistory);
+
+    // Call saveStateToHistory with the updated array
+    saveStateToHistory(updatedHistory); 
+}
+
+
   return (
     <>
+     {currentText && <EditTextPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        initialText={currentText}
+        onSave={handleSaveText}
+      /> }
     <Header/>
   {activity &&  <div className='w-full bg-[#333333] py-[10px] px-[20px] flex flex-row items-center justify-between sticky top-0 z-10 '>
       <div className='w-[30%]'><h2 className='text-[#ffffff] text-[22px] font-bold' title={activity.activityName}>{activity.activityType.toUpperCase()} :: {activity.activityName}</h2></div>
@@ -374,7 +465,7 @@ const VisualEditor = () => {
         />
         <button
           className=" p-2 text-white  bg-[#6a45f9] rounded "
-          onClick={loadWebsite()}
+          onClick={()=> loadWebsite(url)}
         >
          <SendHorizontal />
         </button>
@@ -394,7 +485,7 @@ const VisualEditor = () => {
         <ul className="mt-2">
           {changes.map((change, index) => (
             <li key={index} className="mb-2 text-[13px] leading-5 px-2 bg-[#ffffff] py-2 rounded rounded-lg border-2 border-gray-400 relative">
-              {change}<span className='absolute top-2 right-2 cursor-pointer'><Trash2 className='w-[15px]' /></span>
+              {change}<span className='absolute top-2 right-2 cursor-pointer'><Trash2 className='w-[15px]' onClick={()=>removePer(index)} /></span>
             </li>
           ))}
         </ul>
@@ -403,7 +494,7 @@ const VisualEditor = () => {
           className="w-full p-2 mt-4 text-white bg-green-500 rounded hover:bg-green-600"
           onClick={() => {
             const code = generateJavaScriptCode();
-            alert(code); // Just for testing, you can copy or save it as needed
+            //alert(code); // Just for testing, you can copy or save it as needed
           }}
         >
           Generate JavaScript Code

@@ -77,105 +77,96 @@ router.post("/project/:projectId/create", authenticateToken, async (req, res) =>
 });
 
 // PUT route to update activity details by activityId and projectId
-router.put("/project/:projectId/:activityId/update", async (req, res) => {
+router.put("/project/:projectId/:activityId/update", authenticateToken, async (req, res) => {
   try {
     const { projectId, activityId } = req.params;
-    const { activityName, availability, activityType, activityUrl, location, email, htmlCode, cssCode, jsCode, jsonData, activityStatus } = req.body;
-    const updatedBy = email; // Assume user is logged in and stored in req.user
+    const {
+      activityName, availability, activityType, activityUrl, location, 
+      email, htmlCode, cssCode, jsCode, jsonData, activityStatus
+    } = req.body;
 
-    // Validate the necessary fields
-    if (!activityName || !availability || !activityType || !activityUrl) {
-      return res.status(400).json({ message: "All fields are required." });
+    const updatedBy = req.user.id
+    // Basic validation
+    if (!activityId) {
+      return res.status(400).json({ message: "All required fields must be provided." });
     }
 
-    // If location is provided and availability is "local", check that location does not contain spaces
     if (availability === "local" && location && /\s/.test(location)) {
       return res.status(400).json({ message: "Location cannot contain spaces." });
     }
 
-    // Find the activity by activityId and projectId
+    // Find activity
     const activity = await Activity.findOne({ _id: activityId, projectId });
     if (!activity) {
       return res.status(404).json({ message: "Activity not found or does not belong to the specified project." });
     }
 
+    // Fields we want to track and update
+    const fieldsToUpdate = {
+      activityName,
+      availability,
+      activityType,
+      activityUrl,
+      location: availability === "local" ? location : undefined,
+      htmlCode,
+      cssCode,
+      jsCode,
+      jsonData,
+      activityStatus,
+      updatedBy,
+      updatedAt: new Date(),
+    };
+
+    // Track changes for history (compare old and new values)
     const changes = [];
+    for (const [key, newValue] of Object.entries(fieldsToUpdate)) {
+      // Skip undefined values (like location when not local)
+      if (newValue === undefined) continue;
 
-    // Compare the old values with the new values and store the changes
-    if (activity.activityName !== activityName) {
-      changes.push({ field: 'activityName', oldValue: activity.activityName, newValue: activityName });
-    }
-    if (activity.availability !== availability) {
-      changes.push({ field: 'availability', oldValue: activity.availability, newValue: availability });
-    }
-    if (activity.activityType !== activityType) {
-      changes.push({ field: 'activityType', oldValue: activity.activityType, newValue: activityType });
-    }
-    if (activity.activityUrl !== activityUrl) {
-      changes.push({ field: 'activityUrl', oldValue: activity.activityUrl, newValue: activityUrl });
-    }
-    if (activity.location !== location) {
-      changes.push({ field: 'location', oldValue: activity.location, newValue: location });
-    }
-    
-    // Track changes in the code fields (htmlCode, cssCode, jsCode, jsonData)
-    if (activity.htmlCode !== htmlCode) {
-      changes.push({ field: 'htmlCode', oldValue: activity.htmlCode, newValue: htmlCode });
-    }
-    if (activity.cssCode !== cssCode) {
-      changes.push({ field: 'cssCode', oldValue: activity.cssCode, newValue: cssCode });
-    }
-    if (activity.jsCode !== jsCode) {
-      changes.push({ field: 'jsCode', oldValue: activity.jsCode, newValue: jsCode });
-    }
-    if (JSON.stringify(activity.jsonData) !== JSON.stringify(jsonData)) {
-      changes.push({ field: 'jsonData', oldValue: JSON.stringify(activity.jsonData), newValue: JSON.stringify(jsonData) });
+      const oldValue = activity[key];
+      const isObjectField = ["jsonData"].includes(key);
+      const hasChanged = isObjectField
+        ? JSON.stringify(oldValue) !== JSON.stringify(newValue)
+        : oldValue !== newValue;
+
+      if (hasChanged) {
+        changes.push({
+          field: key,
+          oldValue: isObjectField ? JSON.stringify(oldValue) : oldValue,
+          newValue: isObjectField ? JSON.stringify(newValue) : newValue,
+        });
+
+        // Apply change to the activity object
+        activity[key] = newValue;
+      }
     }
 
-    // Track changes to the status field
-    if (activity.activityStatus !== activityStatus) {
-      changes.push({ field: 'activityStatus', oldValue: activity.activityStatus, newValue: activityStatus });
+    // Only proceed if changes were detected
+    if (changes.length === 0) {
+      return res.status(400).json({ message: "No changes detected." });
     }
 
-    if (changes.length > 0) {
-      // Add the changes to the history array
-      activity.history.push({
-        updatedAt: new Date(),
-        updatedBy: updatedBy,
-        changes: changes
-      });
+    // Push history entry
+    activity.history.push({
+      updatedAt: new Date(),
+      updatedBy: updatedBy,
+      changes: changes,
+    });
 
-      // Update the activity details
-      activity.activityName = activityName;
-      activity.availability = availability;
-      activity.activityType = activityType;
-      activity.activityUrl = activityUrl;
-      activity.location = availability === "local" ? location : undefined; // Only update location if it's a local activity
-      activity.htmlCode = htmlCode;   // Update HTML code
-      activity.cssCode = cssCode;     // Update CSS code
-      activity.jsCode = jsCode;       // Update JavaScript code
-      activity.jsonData = jsonData;   // Update JSON data
-      activity.activityStatus = activityStatus; // Update activity status
-      activity.updatedBy = updatedBy; // Track who updated the activity
-      activity.updatedAt = new Date(); // Update the timestamp
+    // Save updated activity
+    await activity.save();
 
-      // Save the updated activity
-      await activity.save();
-
-      // Respond with the updated activity
-      res.status(200).json({
-        message: "Activity updated successfully",
-        activity: activity
-      });
-    } else {
-      res.status(400).json({ message: "No changes detected." });
-    }
+    res.status(200).json({
+      message: "Activity updated successfully",
+      activity,
+    });
 
   } catch (error) {
-    console.error(error);
+    console.error("Update error:", error);
     res.status(500).json({ message: "An error occurred while updating the activity." });
   }
 });
+
 
 // New route to fetch all activities for a project
 router.get("/project/:projectId/activities", async (req, res) => {
@@ -259,7 +250,7 @@ router.delete("/project/:projectId/:activityId/delete", authenticateToken, async
 
 
 // New route to fetch a specific activity by activityId and projectId
-router.get("/project/:projectId/activity/:activityId", async (req, res) => {
+router.get("/project/:projectId/activity/:activityId",  async (req, res) => {
   try {
     const { projectId, activityId } = req.params;
 
