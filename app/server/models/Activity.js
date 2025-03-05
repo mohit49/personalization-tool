@@ -29,14 +29,34 @@ const activitySchema = new mongoose.Schema({
   ],
   htmlCode: [
     {
-        type: { type: String, required: true },
-        selector: { type: String, required: true },
-        newText: { type: String, required: true }
+      type: { type: String, required: true },
+      selector: { type: String, required: true },
+      newText: { type: String, required: true },
+      updatedAt: { type: Date, default: Date.now },
+      updatedBy: { type: String }
     }
-],
-  cssCode: { type: String },  // CSS code
-  jsCode: { type: String },   // JavaScript code
-  jsonData: { type: mongoose.Schema.Types.Mixed }, // JSON data
+  ],
+  cssCode: [
+    {
+      content: { type: String },
+      updatedAt: { type: Date, default: Date.now },
+      updatedBy: { type: String }
+    }
+  ],
+  jsCode: [
+    {
+      content: { type: String },
+      updatedAt: { type: Date, default: Date.now },
+      updatedBy: { type: String }
+    }
+  ],
+  jsonData: [
+    {
+      content: { type: mongoose.Schema.Types.Mixed },
+      updatedAt: { type: Date, default: Date.now },
+      updatedBy: { type: String }
+    }
+  ],
   activityStatus: { 
     type: String, 
     enum: ['live', 'stopped', 'drafted', 'archived'], 

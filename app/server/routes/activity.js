@@ -85,8 +85,8 @@ router.put("/project/:projectId/:activityId/update", authenticateToken, async (r
       email, htmlCode, cssCode, jsCode, jsonData, activityStatus
     } = req.body;
 
-    const updatedBy = req.user.id
-    // Basic validation
+    const updatedBy = req.user.id;
+
     if (!activityId) {
       return res.status(400).json({ message: "All required fields must be provided." });
     }
@@ -95,65 +95,103 @@ router.put("/project/:projectId/:activityId/update", authenticateToken, async (r
       return res.status(400).json({ message: "Location cannot contain spaces." });
     }
 
-    // Find activity
     const activity = await Activity.findOne({ _id: activityId, projectId });
     if (!activity) {
       return res.status(404).json({ message: "Activity not found or does not belong to the specified project." });
     }
 
-    // Fields we want to track and update
     const fieldsToUpdate = {
       activityName,
       availability,
       activityType,
       activityUrl,
       location: availability === "local" ? location : undefined,
-      htmlCode,
-      cssCode,
-      jsCode,
-      jsonData,
       activityStatus,
       updatedBy,
       updatedAt: new Date(),
     };
 
-    // Track changes for history (compare old and new values)
     const changes = [];
+
     for (const [key, newValue] of Object.entries(fieldsToUpdate)) {
-      // Skip undefined values (like location when not local)
       if (newValue === undefined) continue;
 
       const oldValue = activity[key];
-      const isObjectField = ["jsonData"].includes(key);
-      const hasChanged = isObjectField
-        ? JSON.stringify(oldValue) !== JSON.stringify(newValue)
-        : oldValue !== newValue;
-
-      if (hasChanged) {
+      if (oldValue !== newValue) {
         changes.push({
           field: key,
-          oldValue: isObjectField ? JSON.stringify(oldValue) : oldValue,
-          newValue: isObjectField ? JSON.stringify(newValue) : newValue,
+          oldValue,
+          newValue,
         });
-
-        // Apply change to the activity object
         activity[key] = newValue;
       }
     }
 
-    // Only proceed if changes were detected
+    // Handle versioned fields - push to history arrays
+    if (htmlCode) {
+      if (Array.isArray(htmlCode)) {
+        htmlCode.forEach(code => {
+          activity.htmlCode.push({
+            ...code,
+            updatedAt: new Date(),
+            updatedBy
+          });
+        });
+      }
+    }
+
+    if (cssCode) {
+      activity.cssCode.push({
+        content: cssCode,
+        updatedAt: new Date(),
+        updatedBy
+      });
+
+      changes.push({
+        field: "cssCode",
+        oldValue: "Previous version retained",
+        newValue: "New version added"
+      });
+    }
+
+    if (jsCode) {
+      activity.jsCode.push({
+        content: jsCode,
+        updatedAt: new Date(),
+        updatedBy
+      });
+
+      changes.push({
+        field: "jsCode",
+        oldValue: "Previous version retained",
+        newValue: "New version added"
+      });
+    }
+
+    if (jsonData) {
+      activity.jsonData.push({
+        content: jsonData,
+        updatedAt: new Date(),
+        updatedBy
+      });
+
+      changes.push({
+        field: "jsonData",
+        oldValue: "Previous version retained",
+        newValue: "New version added"
+      });
+    }
+
     if (changes.length === 0) {
       return res.status(400).json({ message: "No changes detected." });
     }
 
-    // Push history entry
     activity.history.push({
       updatedAt: new Date(),
-      updatedBy: updatedBy,
-      changes: changes,
+      updatedBy,
+      changes,
     });
 
-    // Save updated activity
     await activity.save();
 
     res.status(200).json({
@@ -166,6 +204,7 @@ router.put("/project/:projectId/:activityId/update", authenticateToken, async (r
     res.status(500).json({ message: "An error occurred while updating the activity." });
   }
 });
+
 
 
 // New route to fetch all activities for a project
