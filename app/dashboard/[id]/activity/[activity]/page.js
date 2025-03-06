@@ -74,6 +74,9 @@ const VisualEditor = () => {
       console.error('Failed to fetch activity:', error);
     });
   }, []);
+
+
+
  
 
   // Function to load the website content into the iframe
@@ -150,11 +153,18 @@ const VisualEditor = () => {
        ]);
  const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
     const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
-       updateActivity(projectId, activityId, {
-        "type" : "modified",
-          "selector":  getFullSelector(currentElement),
-          "newText": newText
-        })
+       updateActivity(projectId, activityId, 
+        {"htmlCode": [
+          {
+            "type" : "html-modified",
+            "selector":  getFullSelector(currentElement),
+            "newText": newText
+          }
+      ],
+        
+      
+      }
+      )
     .then((data) => {
         console.log("Update successful!", data);
     })
@@ -334,9 +344,51 @@ const VisualEditor = () => {
       case 'insert-before':
         if (element) {
           const newElement = document.createElement('div');
-          newElement.innerText = 'New Element';
+          newElement.innerText = 'New Element Inserted';
           element.parentNode.insertBefore(newElement, element);
           newChange = `Inserted new div element before ${getFullSelector(element)}`;
+          const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+         
+      
+          //newElement.innerHTML = newText;
+            setDbChanges((prevHistory) => [...prevHistory, {
+              "type" : "inserted-before",
+                "selector":  getFullSelector(element),
+                "newText": newChange
+              }
+             ]);
+             const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
+          const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
+             updateActivity(projectId, activityId, 
+              {"htmlCode": [
+                {
+                  "type" : "inserted-before",
+                  "selector":  getFullSelector(element),
+                  "newText": newChange
+                }
+            ],
+              
+            
+            }
+            )
+          .then((data) => {
+              console.log("Update successful!", data);
+          })
+          .catch((error) => {
+              console.error("Update failed", error);
+          });
+      
+        
+            console.log(dBChanges); // Handle the change log however you want
+      
+            if (newChange) {
+              setChanges((prevChanges) => [...prevChanges, newChange]);
+              console.log(changes)
+              console.log(history)
+              saveStateToHistory(iframeDoc); // Save state after the change
+              setCurrentText(null)
+            }
+    
         }
         break;
       case 'insert-after':
@@ -345,6 +397,52 @@ const VisualEditor = () => {
           newElement.innerText = 'New Element';
           element.parentNode.insertBefore(newElement, element.nextSibling);
           newChange = `Inserted new div element after ${getFullSelector(element)}`;
+
+      
+     
+            const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+           
+        
+            //newElement.innerHTML = newText;
+              setDbChanges((prevHistory) => [...prevHistory, {
+                "type" : "inserted-after",
+                  "selector":  getFullSelector(element),
+                  "newText": newChange
+                }
+               ]);
+               const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
+            const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
+               updateActivity(projectId, activityId, 
+                {"htmlCode": [
+                  {
+                    "type" : "inserted-after",
+                    "selector":  getFullSelector(element),
+                    "newText": newChange
+                  }
+              ],
+                
+              
+              }
+              )
+            .then((data) => {
+                console.log("Update successful!", data);
+            })
+            .catch((error) => {
+                console.error("Update failed", error);
+            });
+        
+          
+              console.log(dBChanges); // Handle the change log however you want
+        
+              if (newChange) {
+                setChanges((prevChanges) => [...prevChanges, newChange]);
+                console.log(changes)
+                console.log(history)
+                saveStateToHistory(iframeDoc); // Save state after the change
+                setCurrentText(null)
+              }
+      
+          
         }
         break;
       case 'remove-image':
@@ -482,23 +580,20 @@ const VisualEditor = () => {
       
 
         <h3 className="mt-4 text-lg font-semibold">Changes:</h3>
-        <ul className="mt-2">
-          {changes.map((change, index) => (
+        <ul className="mt-2 h-[70vh] overflow-y-scroll overflow-x-hidden">
+          {activity?.htmlCode.map((change, index) => (
             <li key={index} className="mb-2 text-[13px] leading-5 px-2 bg-[#ffffff] py-2 rounded rounded-lg border-2 border-gray-400 relative">
-              {change}<span className='absolute top-2 right-2 cursor-pointer'><Trash2 className='w-[15px]' onClick={()=>removePer(index)} /></span>
+              <h3 className='font-bold mb-2'>{change?.type}</h3>
+              <hr/>
+              <p className='m-2' title={change?.selector}>{change?.selector.substring(0, 70) + "..."}</p>
+              <hr/>
+              <p className='m-2'>{change?.newText}</p>
+              <span className='absolute top-2 right-2 cursor-pointer'><Trash2 className='w-[15px]' onClick={()=>removePer(index)} /></span>
             </li>
           ))}
         </ul>
 
-        <button
-          className="w-full p-2 mt-4 text-white bg-green-500 rounded hover:bg-green-600"
-          onClick={() => {
-            const code = generateJavaScriptCode();
-            //alert(code); // Just for testing, you can copy or save it as needed
-          }}
-        >
-          Generate JavaScript Code
-        </button>
+       
       </div>
 
       <div className="relative w-full">

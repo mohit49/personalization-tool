@@ -15,29 +15,12 @@ import {
 import Image from "next/image";
 import ClipLoader from "react-spinners/ClipLoader"; // Importing ClipLoader
 
-export default function ProjectList() {
-  const { setProjects, projects } = useContext(AppContext);
-  const [loading, setLoading] = useState(true);
+export default function ProjectList({projects}) {
 
-  useEffect(() => {
-    async function fetchData() {
-      const result = await getProjects();
-      if (result.length > 0) {
-        setProjects(result);
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center my-4">
-        {/* Displaying the ClipLoader while loading */}
-        <ClipLoader size={50} color="#000000" />
-      </div>
-    );
-  }
+
+
+
 
   const imageDt = process.env.NEXT_PUBLIC_NODE_API_URL +'/static';
 

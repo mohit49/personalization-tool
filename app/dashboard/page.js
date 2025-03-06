@@ -1,6 +1,6 @@
 "use client";
 import { PanelsTopLeft } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Header from "@/include/header";
@@ -50,7 +50,7 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [loading, setLoading] = useState(true);
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -100,6 +100,25 @@ export default function Dashboard() {
     setIsLoading(false);
   };
 
+  useEffect(() => {
+      async function fetchData() {
+        const result = await getProjects();
+        if (result.length > 0) {
+          setProjects(result);
+        }
+        setLoading(false);
+      }
+      fetchData();
+    }, [projects]);
+
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center my-4">
+          {/* Displaying the ClipLoader while loading */}
+          <ClipLoader size={50} color="#000000" />
+        </div>
+      );
+    }
   return (
     <>
       <Header />
@@ -111,9 +130,10 @@ export default function Dashboard() {
         ) : (
           <h1 className="text-3xl mb-[20px] font-bold">Your Projects</h1>
         )}
+        {projects && 
         <div className="flex flex-col justify-between items-center w-full px-[20px] container">
-          <ProjectList />
-        </div>
+          <ProjectList projects={projects} />
+        </div>}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className="bg-[#6a45f9] rounded-lg px-[30px] flex flex-row text-[#ffffff] py-[10px]" size="lg">
             <PanelsTopLeft /> &nbsp; Add Project

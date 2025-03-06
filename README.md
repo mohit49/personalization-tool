@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🎉 Prezify
 
-## Getting Started
+Welcome to **Prezify**, a full-stack web application built using **Next.js** for the frontend and **Express.js** for the backend. Prezify is designed to offer a seamless development experience, combining modern technologies like **MongoDB**, **GrapesJS**, **Socket.IO**, and **Radix UI**.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+- ⚡ Full-stack with Next.js & Express.js
+- 🛢️ MongoDB integration with Mongoose
+- 🎨 Visual Editor using GrapesJS
+- 🧰 Form management using react-hook-form & Zod
+- 📡 Real-time communication with Socket.IO
+- 🎨 Styled with Tailwind CSS & Radix UI
+- 🔐 Secure JWT-based authentication
+- 📩 Email support via Nodemailer
+- 📂 File uploads with Multer
+
+---
+
+## 📂 Project Structure
+
+
+---
+
+## 🚀 Installation
+
+### 1. Clone the repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+git clone <repository-url>
+cd Prezify
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies
+npm install
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Setup environment variables
+Create a .env file at the project root and add the following:
 
-## Learn More
+MONGO_URI=mongodb://localhost:27017/prezify
+JWT_SECRET=your_secret_key
+EMAIL_HOST=smtp.mailtrap.io
+EMAIL_PORT=2525
+EMAIL_USER=your_smtp_user
+EMAIL_PASS=your_smtp_pass
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+📦 Available Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Command	Description
+npm run dev	Runs frontend (Next.js) and backend (Express.js) together in development mode
+npm run dev:local	Same as above but using NODE_ENV=local
+npm run dev:next	Runs only the Next.js frontend
+npm run dev:server	Runs only the Express.js backend
+npm run build	Builds the Next.js frontend
+npm run start	Starts the production Next.js server (after build)
+npm run prod	Builds Next.js & starts Express.js in production mode
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+NODE_ENV=production node app/server/server.js
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+npm run prod
+
+
+
+---
+
+### Copy-paste this directly into your `README.md`. Let me know if you want me to create a `.env.example` file too!

@@ -145,7 +145,7 @@ router.delete("/project/:id", authenticateToken, async (req, res) => {
     if (!deletedProject) return res.status(404).json({ error: "Project not found" });
 
     // Delete the project folder and uploaded files
-    const projectFolder = path.join(__dirname, "..", "public", "uploads", deletedProject.projectName);
+    const projectFolder = path.join(__dirname, "..", "public", "uploads", deletedProject?.projectName?.toLowerCase().replace(' ','-').trim());
     const projectJsFile = deletedProject.jsFilePath; // JS file path to delete
 
     // Delete JS file if it exists

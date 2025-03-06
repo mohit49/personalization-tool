@@ -4,8 +4,17 @@ const History = require("../models/history");
 const authenticateToken = require("../middleware/auth"); // Middleware for token verification
 const router = express.Router();
 
+
+const eitherAuthenticateOrCors = require('../middleware/apiAuth');
+// Define your CORS options if needed (optional)
+
+
+
+
+
+
 // ➤ Save Launch Settings for a Project
-router.post("/launch-settings", authenticateToken, async (req, res) => {
+router.post("/launch-settings",  authenticateToken, async (req, res) => {
   try {
     const { projectId, settings } = req.body;
     const userId = req.user._id;
@@ -55,21 +64,21 @@ router.post("/launch-settings", authenticateToken, async (req, res) => {
 });
 
 // ➤ Get Launch Settings for a Project
-router.get("/launch-settings/:projectId", async (req, res) => {
+
+router.get("/launch-settings/:projectId", eitherAuthenticateOrCors, async (req, res) => {
   try {
-    const { projectId } = req.params;
-    const launchSetting = await LaunchSetting.findOne({ projectId }).populate("createdBy", "username email role");
+      const { projectId } = req.params;
+      const launchSetting = await LaunchSetting.findOne({ projectId }).populate("createdBy", "username email role");
 
-    if (!launchSetting) {
-      return res.status(404).json({ error: "Launch settings not found for this project." });
-    }
+      if (!launchSetting) {
+          return res.status(404).json({ error: "Launch settings not found for this project." });
+      }
 
-    res.json(launchSetting);
+      res.json(launchSetting);
   } catch (error) {
-    res.status(500).json({ error: "Error fetching launch settings." });
+      res.status(500).json({ error: "Error fetching launch settings." });
   }
 });
-
 // ➤ Get the History of Changes for Launch Settings
 router.get("/launch-settings/history/:projectId", async (req, res) => {
   try {
