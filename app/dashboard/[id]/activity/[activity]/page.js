@@ -1,18 +1,22 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect , useContext } from 'react';
 import axios from 'axios';
 import grapesjs from 'grapesjs';
-import { fetchActivity , updateActivity } from '@/app/api/api';
+import { fetchActivity , updateActivity, deleteCodeItem , fetchProjectById} from '@/app/api/api';
 import { SendHorizontal, Trash2 } from "lucide-react"
 import EditTextPopup from '@/app/elements/edit-text';
+import ClipLoader from "react-spinners/ClipLoader"; 
+import { AppContext } from "@/app/context/provider";
 //import 'grapesjs/dist/css/grapes.min.css';
 //import 'grapesjs-preset-webpage';
 import Header from "@/include/header";
 const VisualEditor = () => {
+
   let newChange = '';
   const [editor, setEditor] = useState(null);
   const [activity, setActivityData] = useState('');
+  const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState('');
   const iframeRef = useRef(null);
   const [contextMenu, setContextMenu] = useState(null);
@@ -25,6 +29,7 @@ const VisualEditor = () => {
   const [dBChanges, setDbChanges] = useState([]);
   function getFullSelector(element) {
     let path = [];
+    const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1];
     while (element && element.nodeType === 1) { // Ensure the element is an element node
       let selector = element.nodeName.toLowerCase(); // Default to the tag name
   
@@ -80,10 +85,15 @@ const VisualEditor = () => {
  
 
   // Function to load the website content into the iframe
-  const loadWebsite = (url) => {
+  const loadWebsite = async (url) => {
     if (!url) return ;
-
-    fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL}/api/proxy?url=${encodeURIComponent(url)}`)
+   
+      try {
+        const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
+        const data = await fetchProjectById(projectId);
+       
+        if (data) {
+          fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL}/api/proxy?url=${encodeURIComponent(url)}&jsPath=${data.jsFilePath.split('/public')[1]}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error('Failed to fetch the website.');
@@ -127,6 +137,13 @@ const VisualEditor = () => {
         console.error(error);
         //alert('Failed to load the website. Please check the URL and try again.');
       });
+          
+        }
+      } catch (err) {
+        console.error(err.message);
+      }
+ 
+  
   };
 
   // Save current iframe state to history (Undo stack)
@@ -139,7 +156,7 @@ const VisualEditor = () => {
   const handleSaveText = (newText) => {
     const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
     if (currentElement) {
-
+   
       currentElement.innerHTML = newText;
        newChange = `Changed text of element with tag ${getFullSelector(currentElement).slice(0, 70)}... to <p>${newText}</p>`;
     
@@ -147,7 +164,7 @@ const VisualEditor = () => {
        
        setDbChanges((prevHistory) => [...prevHistory, {
         "type" : "modified",
-          "selector":  getFullSelector(currentElement),
+          "selector":  getFullSelector(currentElement).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
           "newText": newText
         }
        ]);
@@ -157,7 +174,7 @@ const VisualEditor = () => {
         {"htmlCode": [
           {
             "type" : "html-modified",
-            "selector":  getFullSelector(currentElement),
+            "selector":  getFullSelector(currentElement).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
             "newText": newText
           }
       ],
@@ -166,6 +183,7 @@ const VisualEditor = () => {
       }
       )
     .then((data) => {
+      setActivityData(data.activity);
         console.log("Update successful!", data);
     })
     .catch((error) => {
@@ -338,7 +356,7 @@ const VisualEditor = () => {
       case 'remove-element':
         if (element) {
           element.remove();
-          newChange = `Removed element with tag ${getFullSelector(element)}`;
+          newChange = `Removed element with tag ${getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, '')}`;
         }
         break;
       case 'insert-before':
@@ -346,14 +364,14 @@ const VisualEditor = () => {
           const newElement = document.createElement('div');
           newElement.innerText = 'New Element Inserted';
           element.parentNode.insertBefore(newElement, element);
-          newChange = `Inserted new div element before ${getFullSelector(element)}`;
+          newChange = `Inserted new div element before ${getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, '')}`;
           const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
          
       
           //newElement.innerHTML = newText;
             setDbChanges((prevHistory) => [...prevHistory, {
               "type" : "inserted-before",
-                "selector":  getFullSelector(element),
+                "selector":  getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
                 "newText": newChange
               }
              ]);
@@ -363,7 +381,7 @@ const VisualEditor = () => {
               {"htmlCode": [
                 {
                   "type" : "inserted-before",
-                  "selector":  getFullSelector(element),
+                  "selector":  getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
                   "newText": newChange
                 }
             ],
@@ -396,7 +414,7 @@ const VisualEditor = () => {
           const newElement = document.createElement('div');
           newElement.innerText = 'New Element';
           element.parentNode.insertBefore(newElement, element.nextSibling);
-          newChange = `Inserted new div element after ${getFullSelector(element)}`;
+          newChange = `Inserted new div element after ${getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, '')}`;
 
       
      
@@ -406,7 +424,7 @@ const VisualEditor = () => {
             //newElement.innerHTML = newText;
               setDbChanges((prevHistory) => [...prevHistory, {
                 "type" : "inserted-after",
-                  "selector":  getFullSelector(element),
+                  "selector":  getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
                   "newText": newChange
                 }
                ]);
@@ -416,7 +434,7 @@ const VisualEditor = () => {
                 {"htmlCode": [
                   {
                     "type" : "inserted-after",
-                    "selector":  getFullSelector(element),
+                    "selector":  getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
                     "newText": newChange
                   }
               ],
@@ -531,13 +549,19 @@ const VisualEditor = () => {
     );
   };
 
-  const removePer = (index) => {
-    const updatedHistory = history.filter((_, i) => i !== index+2);  // Remove item at `index`
-
-    console.log('Updated History:', updatedHistory);
-
-    // Call saveStateToHistory with the updated array
-    saveStateToHistory(updatedHistory); 
+  const removePer = (change) => {
+    setLoading(true);
+    const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
+    const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
+    deleteCodeItem(projectId, activityId, change?.type == "html-modified" ? "htmlCode" : "", change._id)
+    .then(data => {
+      console.log("changes deleted sucessfully")
+      setActivityData(data.activity);
+      setLoading(false);
+    })
+    .catch(err => {
+        console.error("Error:", err.message);
+    });
 }
 
 
@@ -576,19 +600,22 @@ const VisualEditor = () => {
         </div>
     </div> }
     {activity &&  <div className="flex h-screen">
+
       <div className="w-1/4 p-4 bg-gray-100 shadow-xl rounded-lg h-screen ">
       
 
         <h3 className="mt-4 text-lg font-semibold">Changes:</h3>
         <ul className="mt-2 h-[70vh] overflow-y-scroll overflow-x-hidden">
+
           {activity?.htmlCode.map((change, index) => (
-            <li key={index} className="mb-2 text-[13px] leading-5 px-2 bg-[#ffffff] py-2 rounded rounded-lg border-2 border-gray-400 relative">
+            <li key={change._id} data-changeId={change._id} className="mb-2 text-[13px] leading-5 px-2 bg-[#ffffff] py-2 rounded rounded-lg border-2 border-gray-400 relative overflow-hidden">
+              {loading && <div className='w-full absolute bg-[#f5f5f5] h-full z-10 left-0 top-0 bg-opacity-75 flex items-center justify-center flex-row'>  <ClipLoader size={30} color="#888888" /></div>}
               <h3 className='font-bold mb-2'>{change?.type}</h3>
               <hr/>
               <p className='m-2' title={change?.selector}>{change?.selector.substring(0, 70) + "..."}</p>
               <hr/>
               <p className='m-2'>{change?.newText}</p>
-              <span className='absolute top-2 right-2 cursor-pointer'><Trash2 className='w-[15px]' onClick={()=>removePer(index)} /></span>
+              <span className='absolute top-2 right-2 cursor-pointer'><Trash2 className='w-[15px]' onClick={()=>removePer(change)} /></span>
             </li>
           ))}
         </ul>

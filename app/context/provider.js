@@ -9,6 +9,7 @@ export function AppProvider({ children }) {
   const [theme, setTheme] = useState("light");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [projects, setProjects] = useState(false);
+  const [currentProject, setCurrentProjects] = useState(false);
   const router = useRouter();
   useEffect(() => {
     async function getUserData() {
@@ -26,7 +27,7 @@ export function AppProvider({ children }) {
   }, [isLoggedIn]);
 
   return (
-    <AppContext.Provider value={{ user, setUser, theme, setTheme, isLoggedIn, setIsLoggedIn , projects, setProjects }}>
+    <AppContext.Provider value={{ user, setUser, theme, setTheme, isLoggedIn, setIsLoggedIn , projects, setProjects , setCurrentProjects , currentProject }}>
       {children}
     </AppContext.Provider>
   );

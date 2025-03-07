@@ -4,6 +4,7 @@ const Project = require("../models/Projects");
 const Activity = require("../models/Activity");
 const authenticateToken = require("../middleware/auth"); // Middleware for token verification
 
+const eitherAuthenticateOrCors = require('../middleware/apiAuth');
 // POST route to create an activity under a specific project
 router.post("/project/:projectId/create", authenticateToken, async (req, res) => {
   try {
@@ -232,7 +233,7 @@ router.get("/project/:projectId/activities", async (req, res) => {
   }
 });
 
-router.get("/project/:projectId/activities/live", async (req, res) => { 
+router.get("/project/:projectId/activities/live", eitherAuthenticateOrCors, async (req, res) => { 
   try {
     const { projectId } = req.params;
 
@@ -315,5 +316,43 @@ router.get("/project/:projectId/activity/:activityId",  async (req, res) => {
     res.status(500).json({ message: "An error occurred while fetching the activity." });
   }
 });
+
+
+router.delete("/project/:projectId/:activityId/code/:codeType/:index", authenticateToken, async (req, res) => {
+  try {
+      const { projectId, activityId, codeType, index } = req.params;
+
+      const validTypes = ["htmlCode", "cssCode", "jsCode", "jsonData"];
+      if (!validTypes.includes(codeType)) {
+          return res.status(400).json({ message: "Invalid code type." });
+      }
+
+      const activity = await Activity.findOne({ _id: activityId, projectId });
+      if (!activity) {
+          return res.status(404).json({ message: "Activity not found." });
+      }
+
+      const codeArray = activity[codeType];
+      if (!codeArray || codeArray.length <= index) {
+          return res.status(404).json({ message: "Item not found in " + codeType });
+      }
+
+      // Remove the item at the specified index
+      codeArray.splice(index, 1);
+      activity[codeType] = codeArray;
+
+      // Save the updated activity
+      await activity.save();
+
+      res.status(200).json({
+          message: `${codeType} item deleted successfully`,
+          activity
+      });
+  } catch (error) {
+      console.error("Delete code item error:", error);
+      res.status(500).json({ message: "An error occurred while deleting the code item." });
+  }
+});
+
 
 module.exports = router;

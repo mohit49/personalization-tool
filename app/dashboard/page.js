@@ -46,7 +46,7 @@ const formSchema = z.object({
 });
 
 export default function Dashboard() {
-  const { projects, setProjects } = useContext(AppContext);
+  const { projects, setProjects  } = useContext(AppContext);
   const [open, setOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);

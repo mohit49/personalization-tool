@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/proxy', async (req, res) => {
   const targetUrl = req.query.url;
+  const projectId = req.query.projectId;
   if (!targetUrl) return res.status(400).send('URL is required.');
 
   try {

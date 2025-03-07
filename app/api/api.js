@@ -365,6 +365,25 @@ export const updateActivity = async (projectId, activityId, activityData) => {
   }
 };
 
+export const deleteCodeItem = async (projectId, activityId, codeType, index, token) => {
+  try {
+      const response = await axios.delete(
+          `${apiUrl}/api/auth/project/${projectId}/${activityId}/code/${codeType}/${index}`,
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`
+              }
+          }
+      );
+
+      console.log(response.data.message);
+      return response.data;
+  } catch (error) {
+      console.error("Failed to delete code item:", error.response?.data?.message || error.message);
+      throw error;
+  }
+};
+
 
 
 
