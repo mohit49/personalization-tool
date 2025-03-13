@@ -25,7 +25,6 @@ const userSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    //enum: ['male', 'female', 'other'], // Limit gender to these values
     required: true,
     minlength: 3,
   },
@@ -37,7 +36,13 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Default value will be false until the phone is verified
   },
-
+  // New fields for password reset functionality
+  resetToken: {
+    type: String,
+  },
+  resetTokenExpiry: {
+    type: Date,
+  },
 });
 
 const User = mongoose.model('User', userSchema);

@@ -37,7 +37,7 @@ router.post("/project/:projectId/create", authenticateToken, async (req, res) =>
     }
 
     // Set the activity status to 'drafted' if not provided
-    const status = activityStatus || 'drafted';
+    const status = activityStatus || 'inactive';
 
     // Create the new activity
     const newActivity = new Activity({

@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/proxy', async (req, res) => {
   const targetUrl = req.query.url;
-  const projectId = req.query.projectId;
+  const jsPath = req.query.jsPath;
   if (!targetUrl) return res.status(400).send('URL is required.');
 
   try {
@@ -59,6 +59,15 @@ router.get('/proxy', async (req, res) => {
 
     // 🛡️ Remove existing CSP meta tags that block assets
     html = html.replace(/<meta[^>]*content-security-policy[^>]*>/gi, '');
+
+    // 🔄 Inject JavaScript file if jsPath is provided
+    if (jsPath) {
+      // Ensure jsPath is an absolute URL
+
+      // Inject the <script> tag before the closing </body> tag
+      const scriptTag = `<script src="/static${jsPath}"></script>`;
+      html = html.replace(/<\/body>/i, `${scriptTag}</body>`);
+    }
 
     res.send(html);
   } catch (error) {

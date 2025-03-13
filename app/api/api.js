@@ -386,6 +386,21 @@ export const deleteCodeItem = async (projectId, activityId, codeType, index, tok
 
 
 
+export const resetPassword = async (email) => {
+  try {
+    const response = await axios.post('https://app.mazzl.ae/api/auth/reset-password', {
+      email: email
+    });
+    console.log('Password reset successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error resetting password:', error.response ? error.response.data : error.message);
+  }
+};
+
+
+
+
 
 
 

@@ -8,35 +8,36 @@ import Header from '@/include/header';
 import { AppContext } from "@/app/context/provider"; // Import AppContext
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import {useLogin} from '@/app/api/api'; // Import the useLogin hook
+import {resetPassword} from '@/app/api/api'; // Import the useLogin hook
 import { useRouter } from "next/navigation"; // Correct import for App Router
 export default function Home() {
-   const { user, isLoggedIn, setIsLoggedIn, setUser } = useContext(AppContext);
+
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { login, isLoading, error } = useLogin(); // Use the useLogin hook
+  const [error, setError] = useState('');
+  const [sent, setSent] = useState('');
+  const [isLoading, setLoading] = useState('');
+// Use the useLogin hook
 
   const handleSubmit = async (e) => {
+    setLoading(true)
     e.preventDefault();
 
-    const userData = await login(email, password);
+    const emailSent = await resetPassword(email);
 
-    if (userData) {
-      if(userData.message == "Login successful") {
-        setIsLoggedIn(true)
-        router.push(`/dashboard/`);
-      }
+    if (emailSent) {
+        setLoading(false);
+        setSent(true)
     }
   };
 
   return (
     <section className='w-full h-[100vh] flex flex-col bg-[#6a45f9]'>
       <Header />
-      <Card className="w-[400px] mx-auto mt-[5%] opacity-0 animate-fadeIn">
+     {!sent && <Card className="w-[400px] mx-auto mt-[5%] opacity-0 animate-fadeIn">
         <CardHeader>
-          <CardTitle className="text-[30px]">Login to Your Projects</CardTitle>
-          <CardDescription>Personalize Your Website With Prezify</CardDescription>
+          <CardTitle className="text-[30px]">Forgot Password ?</CardTitle>
+          <CardDescription>Please provide Your email below will send you reset link</CardDescription>
         </CardHeader>
         <CardContent>
           <form >
@@ -52,17 +53,7 @@ export default function Home() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  className="h-[45px]"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
+              
             </div>
             {error && (
               <p className="text-red-500 text-sm mt-2">{error}</p>
@@ -71,10 +62,10 @@ export default function Home() {
         </CardContent>
         <CardFooter className="flex flex-col items-start">
           <div className='flex flex-row w-full justify-between'>
-            <Button onClick={handleSubmit} disabled={isLoading} type="submit">{isLoading ? 'Logging In...' : 'Login Now'}</Button>
+            <Button onClick={handleSubmit} disabled={isLoading} type="submit">{isLoading ? 'Logging In...' : 'Reset Now'}</Button>
             <p className='mt-[5px] text-[12px]'>
-              Forgot Password?{' '}
-              <Link href="/reset-password" className='text-[#6a45f9]'>Reset Now</Link>
+              You Have Password?{' '}
+              <Link href="/login" className='text-[#6a45f9]'>Login Now</Link>
             </p>
           </div>
           <p className='w-full text-center relative pt-10'>
@@ -85,7 +76,10 @@ export default function Home() {
             <Link href="/register" className='text-[#6a45f9]'>Register Now</Link>
           </p>
         </CardFooter>
-      </Card>
+      </Card> }
+      {sent && <div className='w-100% h-full flex justify-center text-center flex-col px-[150px]'>
+        <h1 className='text-white text-[24px]'>We have received your request to reset your password. An email with instructions has been sent to your registered email address. Please check your inbox (and spam/junk folder, just in case) for the password reset email.</h1></div>
+      }
     </section>
   );
 }

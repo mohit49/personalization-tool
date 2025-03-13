@@ -17,7 +17,7 @@ const verifyUser = require("../server/routes/varification");
 const proxyRoute = require("./routes/proxy");
 const projectRoutes = require("./routes/projectRoutes");
 const activityRoute = require("./routes/activity");
-
+const resetPasswprd = require("./routes/reset-password")
 // Fetch URL for CORS & API proxy from environment
 const appUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'; // Default fallback
 
@@ -63,7 +63,7 @@ app.use("/auth", projectRoutes); // Project API
 app.use("/auth", activityRoute); // Activity API
 app.use("/", proxyRoute); // Proxy Route
 app.use("/auth", saveLaunchSettings); // Launch Settings API
-
+app.use("/auth", resetPasswprd); 
 // Default route
 app.get("/", (req, res) => {
   res.send("Welcome to the User Registration API");

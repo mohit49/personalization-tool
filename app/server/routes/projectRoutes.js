@@ -90,12 +90,32 @@ router.post("/project", authenticateToken, upload.single("image"), async (req, r
 // ➤ Get all projects
 router.get("/project", authenticateToken, async (req, res) => {
   try {
-    const projects = await Project.find().populate("createdBy", "username email role");
+    const userId = req.user.id; // Assuming `req.user.id` is the authenticated user's ID
+    const userEmail = req.user.email; // Assuming `req.user.email` is the authenticated user's email
+
+    // First, try to match projects where the authenticated user is the creator
+    const projects = await Project.find({
+      $or: [
+        { createdBy: userId }, // Match if the authenticated user is the creator
+        {
+          $and: [
+            { createdBy: { $ne: userId } }, // If createdBy does not match the userId
+            { "users.userId": userEmail } // Then check if the email exists in the users array
+          ]
+        }
+      ]
+    })
+      .populate("createdBy", "username email role") // Populate the creator's details
+      .populate("users.userId", "username email role"); // Populate userId in users array with user details
+
     res.json(projects);
   } catch (error) {
     res.status(500).json({ error: "Error fetching projects" });
   }
 });
+
+
+
 
 // ➤ Get project by ID
 router.get("/project/:id", authenticateToken, async (req, res) => {

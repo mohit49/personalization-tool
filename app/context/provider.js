@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useState, useEffect } from "react";
 import { fetchUserProfile } from "@/app/api/api";
-import { useRouter } from "next/navigation"; // Correct import for App Router
+import { useRouter, usePathname  } from "next/navigation"; // Correct import for App Router
 export const AppContext = createContext();
 
 export function AppProvider({ children }) {
@@ -10,9 +10,14 @@ export function AppProvider({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [projects, setProjects] = useState(false);
   const [currentProject, setCurrentProjects] = useState(false);
+
   const router = useRouter();
+  const pathName = usePathname();
   useEffect(() => {
+
     async function getUserData() {
+      
+
       const userData = await fetchUserProfile();
       if (userData) {
         setUser(userData);
@@ -23,7 +28,11 @@ export function AppProvider({ children }) {
         router.push(`/login/`);
       }
     }
-    getUserData();
+    if(!pathName.includes("reset-password")) {
+      getUserData();
+    }
+
+
   }, [isLoggedIn]);
 
   return (

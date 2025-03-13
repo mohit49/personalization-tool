@@ -8,13 +8,24 @@ import {
 } from "lucide-react";
 import ClipLoader from "react-spinners/ClipLoader"; // Importing the spinner loader
 import Link from "next/link";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+ 
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {  updateActivity} from '@/app/api/api';
 export default function ActivityCard({ activity , projectId }) {
   const [selectedActivities, setSelectedActivities] = useState([]);
   const [username, setUsername] = useState(null); // State to store the username
   const [loading, setLoading] = useState(false); // Loading state for fetching data
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const [successMessage, setSuccessMessage] = useState(""); // State for success message
-
+  const [activityData, setActivityData] = useState(activity); 
+  const [project, setProjectId] = useState(projectId); 
   function trimActivityName(activityName, maxLength = 10) {
     // Check if the activity name is longer than the max length
     if (activityName.length > maxLength) {
@@ -52,22 +63,52 @@ export default function ActivityCard({ activity , projectId }) {
     fetchUsername();
   }, [activity.createdBy]); // Re-run when activity.createdBy changes
 
+  const activateActivity = ( ) => {
+     updateActivity(project, activityData._id, 
+            {"activityStatus": "live"
+          }
+          )
+        .then((data) => {
+          setActivityData(data.activity);
+            
+        })
+        .catch((error) => {
+            console.error("Update failed", error);
+        });
+  }
+
+  const deactivate = ( ) => {
+    updateActivity(project, activityData._id, 
+           {"activityStatus": "inactive"
+         }
+         )
+       .then((data) => {
+         setActivityData(data.activity);
+           
+       })
+       .catch((error) => {
+           console.error("Update failed", error);
+       });
+ }
+
+
   return (
-    <div
-      key={activity._id}
-      className={`grid grid-cols-6 gap-4 ${activity.activityType == "xt" ? "bg-[#dfe4ea]" : "bg-[#ced6e0]"} p-3 mb-2 rounded-lg items-center ${activity.activityStatus == "live" ? "outline-green-500 outline outline-offset-2" : "" }`}
+    <>
+  {activityData &&  <div
+      key={activityData._id}
+      className={`grid grid-cols-6 gap-4 ${activityData.activityType == "xt" ? "bg-[#dfe4ea]" : "bg-[#ced6e0]"} p-3 mb-2 rounded-lg items-center ${activityData.activityStatus == "live" ? "outline-green-500 outline outline-offset-2" : "" }`}
     >
       <div className="flex items-center text-[14px] space-x-2 col-span-2 gap-[10px] items-center">
-        <Checkbox id={`activity-${activity._id}`} />
+        <Checkbox id={`activity-${activityData._id}`} />
         <span className="text-md text-white uppercase text-center bg-[#333333] rounded-lg px-[10px] py-[5px]">
-          {activity.activityType}
+          {activityData.activityType}
         </span>
 
         <span
           className="text-[18px] text-gray-600 capitalize font-bold"
-          title={activity.activityName}
+          title={activityData.activityName}
         >
-          {trimActivityName(activity.activityName, 25)}
+          {trimActivityName(activityData.activityName, 25)}
         </span>
       </div>
 
@@ -83,26 +124,41 @@ export default function ActivityCard({ activity , projectId }) {
 
       <div className="w-[100px]">
         <span className="text-md text-gray-600 capitalize flex flex-row items-center gap-3 justify-between">
-          {activity.activityStatus || "Not Specified"} <span className={`w-[10px] h-[10px] rounded-[50px] ${activity.activityStatus == "live" ? "bg-green-600" : activity.activityStatus == "stopped" ? "bg-red-500 " :"bg-gray-500"}`}></span>
+          {activityData.activityStatus || "Not Specified"} <span className={`w-[10px] h-[10px] rounded-[50px] ${activityData.activityStatus == "live" ? "bg-green-600" : activityData.activityStatus == "inactive" ? "bg-red-500 " :"bg-gray-500"}`}></span>
         </span>
       </div>
 
       <div className="col-span-2 flex flex-row justify-between items-center">
         <div className="text-md text-gray-600">
-          {new Date(activity.updatedAt).toLocaleString()}
+          {new Date(activityData.updatedAt).toLocaleString()}
         </div>
         <Link className="px-2 py-1 bg-brand-dafault rounded text-[#ffffff]" href={`/dashboard/${projectId}/activity/${activity._id}`}
          
         >
           Edit Activity
         </Link>
+
+        <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+       
         <EllipsisVertical />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-30"  align="end">
+        <DropdownMenuLabel>Activity</DropdownMenuLabel>
+        <DropdownMenuItem  onClick={activateActivity}>Activate Activity</DropdownMenuItem>
+        <DropdownMenuItem onClick={deactivate}>Deactivate Activity</DropdownMenuItem>
+        <DropdownMenuItem >Edit Activity</DropdownMenuItem>
+        <DropdownMenuItem>Delete Activity</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+      
       </div>
 
       {/* Show success message if available */}
       {successMessage && (
         <div className="text-green-500 text-sm mt-2">{successMessage}</div>
       )}
-    </div>
+    </div>}
+    </>
   );
 }

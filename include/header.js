@@ -98,6 +98,11 @@ export default function Header() {
                 Blogs
               </Link>
             </li>
+            <li>
+              <Link className="text-white" href="/">
+                Login/Register
+              </Link>
+            </li>
           
          
         </>
@@ -108,9 +113,9 @@ export default function Header() {
 
     </header>
    
-   {isLoggedIn && (!user?.emailVerified && !user?.emailVerified) &&
+   {(isLoggedIn && !user?.emailVerified) &&
    
-   <Alert variant="destructive">
+   <Alert variant="destructive" className={`${user?.emailVerified ? "" :"hidden"}`}>
      <div className="px-[20px] container">
     <Terminal className="h-4 w-4" />
    

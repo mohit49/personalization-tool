@@ -61,7 +61,20 @@ const VisualEditor = () => {
     setIsPopupOpen(true);
   };
 
-  
+  function generateDateTime4DigitCode() {
+    const now = new Date();
+
+    // Extract milliseconds and format it to 4 digits
+    const milliseconds = now.getMilliseconds().toString().padStart(3, '0');
+
+    // Combine with seconds or minutes for better uniqueness
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+
+    // Generate a 4-digit code using milliseconds + seconds
+    const code = (milliseconds + seconds).slice(-4);
+
+    return code;
+}
   useEffect(() => {
     const url = window.location.pathname; // Get the current URL path
     const pathParts = url.split('/activity/'); // Split the URL by '/'
@@ -240,8 +253,8 @@ const VisualEditor = () => {
     const style = iframeDoc.createElement('style');
     style.innerHTML = `
       .highlighted {
-        outline: 4px dashed rgba(255, 0, 0, 0.7);
-        background-color: rgba(255, 0, 0, 0.1);
+        outline: 1.5px solid rgba(0, 81, 255, 0.7);
+        background-color: rgba(111, 0, 255, 0.15);
       }
     `;
     iframeDoc.head.appendChild(style);
@@ -362,9 +375,10 @@ const VisualEditor = () => {
       case 'insert-before':
         if (element) {
           const newElement = document.createElement('div');
+          newElement.id= "personalized-element-" + generateDateTime4DigitCode();
           newElement.innerText = 'New Element Inserted';
           element.parentNode.insertBefore(newElement, element);
-          newChange = `Inserted new div element before ${getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, '')}`;
+          newChange = newElement;
           const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
          
       
@@ -372,7 +386,7 @@ const VisualEditor = () => {
             setDbChanges((prevHistory) => [...prevHistory, {
               "type" : "inserted-before",
                 "selector":  getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
-                "newText": newChange
+                "newText": newElement
               }
              ]);
              const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
@@ -382,7 +396,7 @@ const VisualEditor = () => {
                 {
                   "type" : "inserted-before",
                   "selector":  getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
-                  "newText": newChange
+                  "newText": newElement.outerHTML
                 }
             ],
               
@@ -551,13 +565,19 @@ const VisualEditor = () => {
 
   const removePer = (change) => {
     setLoading(true);
+    var changeType;
     const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
     const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
-    deleteCodeItem(projectId, activityId, change?.type == "html-modified" ? "htmlCode" : "", change._id)
+    if(change?.type == "html-modified" || change?.type == "inserted-after" || change?.type == "remove-element" || change?.type == "inserted-before" ) {
+      changeType = "htmlCode"
+    }
+   
+    deleteCodeItem(projectId, activityId, changeType, change._id)
     .then(data => {
       console.log("changes deleted sucessfully")
       setActivityData(data.activity);
       setLoading(false);
+      loadWebsite(url);
     })
     .catch(err => {
         console.error("Error:", err.message);
@@ -624,6 +644,7 @@ const VisualEditor = () => {
       </div>
 
       <div className="relative w-full">
+      {loading &&  <div className='w-full absolute bg-[#f5f5f5] h-full z-10 left-0 top-0 bg-opacity-75 flex items-center justify-center flex-row'>  <ClipLoader size={30} color="#888888" /></div>}
         <iframe
           ref={iframeRef}
           style={{ width: '100%', height: '100vh' }}

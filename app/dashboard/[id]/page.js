@@ -1,30 +1,28 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation"; // Correct import for App Router
+import React , { useEffect, useState, useMemo, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Header from "@/include/header";
 import { fetchProjectById, deleteProject, fetchActivitiesByProject } from "@/app/api/api";
 import { Button } from "@/components/ui/button";
 import { SearchCom } from "@/app/elements/search";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut , DropdownMenuLabel, DropdownMenuTrigger , DropdownMenuSeparator , DropdownMenuGroup  } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogDescription } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Dialog } from "@/app/elements/alert-dialog";
 import { DataDialog } from "@/app/elements/dialog";
 import { DelUserDialog } from "@/app/elements/delUserDialog";
 import { CreateActivityDialog } from "@/app/elements/create-activity-dialog";
-import {
-  EllipsisVertical 
-} from "lucide-react"
+import { EllipsisVertical } from "lucide-react";
 import ActivityCard from "@/app/elements/activity-card";
-import  LaunchDialog  from "@/app/elements/launch-dialog";
+import LaunchDialog from "@/app/elements/launch-dialog";
+
 const apiUrl = process.env.NEXT_PUBLIC_NODE_API_URL;
 const imageDt = apiUrl;
 
-export default function Dashboard() {
+const Dashboard = () => {
   const router = useRouter();
-  const { id } = useParams(); // Extract 'id' from URL params
+  const { id } = useParams(); 
   const [project, setProject] = useState(null);
   const [activities, setActivities] = useState([]);
 
@@ -41,7 +39,6 @@ export default function Dashboard() {
         const data = await fetchProjectById(id);
         setProject(data);
         if (data) {
-          // Fetch activities when project data is available
           const activitiesData = await fetchActivitiesByProject(id);
           setActivities(activitiesData);
         }
@@ -53,7 +50,7 @@ export default function Dashboard() {
     if (id) loadProject();
   }, [id]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     const projectId = project._id;
     try {
       await deleteProject(projectId);
@@ -61,110 +58,102 @@ export default function Dashboard() {
     } catch (error) {
       alert("Error deleting project: " + (error.response?.data?.error || error.message));
     }
-  };
+  }, [project, router]);
 
   const handleActivitySelection = (activityId) => {
     setSelectedActivities((prev) =>
       prev.includes(activityId)
-        ? prev.filter((id) => id !== activityId) // Deselect activity
-        : [...prev, activityId] // Select activity
+        ? prev.filter((id) => id !== activityId)
+        : [...prev, activityId]
     );
   };
 
   // Memoize activities list to prevent unnecessary re-renders
   const memoizedActivities = useMemo(() => activities, [activities]);
 
+  // Memoize event handlers for activity dialog
+  const handleCreateABActivity = useCallback(() => {
+    setActivityDialog(true);
+    setActivityType("ab");
+  }, []);
+
+  const handleCreateXTActivity = useCallback(() => {
+    setActivityDialog(true);
+    setActivityType("xt");
+  }, []);
+
   return (
     <>
       <Header />
       <section className="w-full min-h-[800px] flex flex-col bg-[#f5f5f5] items-start !justify-top pt-[10px] pb-[50px]">
-      {project &&  <div className="w-full flex flex-row justify-between items-center py-[10px] px-0 container">
+        {project && (
+          <div className="w-full flex flex-row justify-between items-center py-[10px] px-0 container">
             <div className="logo">
-            <div><img src={imageDt+ '/static' + project.imageURL.toLowerCase()} alt="Preview" className="w-[120px] h-auto " /></div>
-            <h3 className="font-brand mt-[10px]">{project.projectName}</h3>
-            <h5 className="mt-[10px] text-[13px] mt-0">{project.domain}</h5>
+              <div><img src={imageDt + '/static' + project.imageURL.toLowerCase()} alt="Preview" className="w-[120px] h-auto " /></div>
+              <h3 className="font-brand mt-[10px]">{project.projectName}</h3>
+              <h5 className="mt-[10px] text-[13px] mt-0">{project.domain}</h5>
             </div>
             <div className="flex flex-row items-center space-x-4">
               <SearchCom placeholder="Search Your activity here"/>
-              <Button className="!bg-[#c0392b]" onClick={(e)=>setOpenLaunch(true)}>Setup Engine</Button>
+              <Button className="!bg-[#c0392b]" onClick={() => setOpenLaunch(true)}>Setup Engine</Button>
+              <Button onClick={handleCreateXTActivity}>Create Personalization</Button>
+            {/* <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button onClick={handleCreateXTActivity}>Create Personalization</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>Create Personalization</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={handleCreateABActivity}></DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleCreateXTActivity}>XT Activity</DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu> Comment */} 
               <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-   <Button >Create Activity</Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>Create Activity</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={(e) => {setActivityDialog(true), setActivityType("ab")} }>
-           A/B Testing
-           
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={(e) => {setActivityDialog(true), setActivityType("xt")} }>
-            XT Activity
-           
-          </DropdownMenuItem>
-         
-         
-        </DropdownMenuGroup>
-    
-      </DropdownMenuContent>
-    </DropdownMenu>
-            <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-      <EllipsisVertical />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>{project.projectName}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Update Project Details
-            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Billing
-            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-          </DropdownMenuItem>
-         
-         
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-    
-        <DropdownMenuItem onClick={(e)=> setUserDialog(true)}>Users and Roles</DropdownMenuItem>
-        <DropdownMenuItem onClick={(e)=> setDelUserDialog(true)}>Delete User</DropdownMenuItem>
-        <DropdownMenuItem>Support</DropdownMenuItem>
-       
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={(e) => setOpen(true)}>
-Remove Project
-          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-    <LaunchDialog open={openLaunch} setOpen={setOpenLaunch} projectId={project._id}/>
-        
-               <Dialog open={open} setOpen={setOpen}>
-               <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-             You will have no more acces to this project and all activities will be deleted
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-
-               </Dialog>
-               <DataDialog open={userDialog} setOpen={setUserDialog} projectId={project._id}/>
-               <DelUserDialog open={delUser} setOpen={setDelUserDialog} projectId={project._id} usersList={project.users}/>
+                <DropdownMenuTrigger asChild>
+                  <EllipsisVertical />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>{project.projectName}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      Update Project Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Billing
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setUserDialog(true)}>Users and Roles</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDelUserDialog(true)}>Delete User</DropdownMenuItem>
+                  <DropdownMenuItem>Support</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setOpen(true)}>Remove Project</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <LaunchDialog open={openLaunch} setOpen={setOpenLaunch} projectId={project._id}/>
+              <Dialog open={open} setOpen={setOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will have no more access to this project and all activities will be deleted
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </Dialog>
+              <DataDialog open={userDialog} setOpen={setUserDialog} projectId={project._id}/>
+              <DelUserDialog open={delUser} setOpen={setDelUserDialog} projectId={project._id} usersList={project.users}/>
             </div>
+          </div>
+        )}
 
-        </div>}
-
-        {/* Activity Creation Dialog */}
         <CreateActivityDialog
           open={activityDialog}
           projectId={project?._id}
@@ -172,32 +161,9 @@ Remove Project
           activityType={activityType}
         />
 
-        {/* Confirm Delete Project Dialog */}
-        <Dialog open={open} setOpen={setOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                You will have no more access to this project, and all activities will be deleted.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </Dialog>
-
-        <DataDialog open={userDialog} setOpen={setUserDialog} projectId={project?._id} />
-        <DelUserDialog
-          open={delUser}
-          setOpen={setDelUserDialog}
-          projectId={project?._id}
-          usersList={project?.users}
-        />
-
-        {/* Filters */}
+        {/* Activity List and Filters */}
         <div className="w-full flex flex-row justify-between items-start py-[10px] px-0 container gap-2">
+          {/* Filters Panel */}
           <div className="w-1/6 px-[10px] py-[20px] bg-[#ffffff] rounded-lg">
             <h3 className="font-bold">By Activity Status</h3>
             <div className="flex items-center space-x-2 py-[10px]">
@@ -244,7 +210,7 @@ Remove Project
             </div>
           </div>
 
-          {/* Activity List */}
+          {/* Activity List Panel */}
           <div className="w-full px-[10px] py-[20px] bg-[#ffffff] rounded-lg min-h-[600px]">
             {memoizedActivities && memoizedActivities.length === 0 && (
               <div className="text-center w-full self-center">
@@ -257,32 +223,22 @@ Remove Project
             {memoizedActivities && memoizedActivities.length > 0 && (
               <div className="w-full">
                 <h2 className="font-bold text-xl mb-4">Activities</h2>
-
-                <div
-
-className="grid grid-cols-6 gap-4 bg-[#222f3e] p-4 mb-2 rounded-lg"
->
-<div className="flex items-center space-x-2 col-span-2">
-
-<h2 className="font-bold text-md m-0 text-[#ffffff]">Activities</h2>
-</div>
-
-<div className="col-span-1">
-<h2 className="font-bold text-md m-0 text-[#ffffff]">Created By</h2>
-</div>
-
-<div className="w-[100px]">
-<h2 className="font-bold text-md m-0 text-[#ffffff]">Status</h2>
-</div>
-
-<div className="col-span-2">
-<h2 className="font-bold text-md m-0 text-[#ffffff]">Last Updated</h2>
-</div>
-
-</div>
+                <div className="grid grid-cols-6 gap-4 bg-[#222f3e] p-4 mb-2 rounded-lg">
+                  <div className="flex items-center space-x-2 col-span-2">
+                    <h2 className="font-bold text-md m-0 text-[#ffffff]">Activities</h2>
+                  </div>
+                  <div className="col-span-1">
+                    <h2 className="font-bold text-md m-0 text-[#ffffff]">Created By</h2>
+                  </div>
+                  <div className="w-[100px]">
+                    <h2 className="font-bold text-md m-0 text-[#ffffff]">Status</h2>
+                  </div>
+                  <div className="col-span-2">
+                    <h2 className="font-bold text-md m-0 text-[#ffffff]">Last Updated</h2>
+                  </div>
+                </div>
                 {memoizedActivities.map((activity) => (
-            <ActivityCard key={activity._id} activity={activity} projectId={id}/>
-               
+                  <ActivityCard key={activity._id} activity={activity} projectId={id}/>
                 ))}
               </div>
             )}
@@ -291,4 +247,6 @@ className="grid grid-cols-6 gap-4 bg-[#222f3e] p-4 mb-2 rounded-lg"
       </section>
     </>
   );
-}
+};
+
+export default React.memo(Dashboard); // Wrap component to prevent unnecessary re-renders

@@ -59,7 +59,7 @@ const activitySchema = new mongoose.Schema({
   ],
   activityStatus: { 
     type: String, 
-    enum: ['live', 'stopped', 'drafted', 'archived'], 
+    enum: ['live', 'inactive', 'drafted', 'archived'], 
     default: 'drafted' // Default status when activity is created
   }
 });

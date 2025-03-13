@@ -2,34 +2,19 @@
   "name": "app",
   "version": "0.1.0",
   "private": true,
-  
-  
-"scripts": {
-  "dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
-  
-  "dev:local": "cross-env NODE_ENV=local npm run dev:dev",
-  
-  "dev:dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
-  
-  "dev:next": "next dev",
-  
-  "dev:server": "node app/server/server.js",
-  
-  "build": "next build",
-  
-  "start": "next start",
-
-   "prod": "cross-env NODE_ENV=production npm run build && npm run start"
-}
-
-
-
-
-    ,
-  
-  
+  "scripts": {
+    "dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
+    "dev:local": "cross-env NODE_ENV=local npm run dev:dev",
+    "dev:dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
+    "dev:next": "next dev",
+    "dev:server": "node app/server/server.js",
+    "build": "next build",
+    "start": "next start",
+    "prod": "cross-env NODE_ENV=production npm run build && npm run start"
+  },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@lexical/react": "^0.27.1",
     "@measured/puck": "^0.18.2",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -59,6 +44,7 @@
     "grapesjs-preset-webpage": "^1.0.3",
     "http-proxy-middleware": "^3.0.3",
     "jsonwebtoken": "^9.0.2",
+    "lexical": "^0.27.1",
     "lucide-react": "^0.471.2",
     "mongodb": "^6.13.0",
     "mongoos": "^0.0.1-security",
@@ -69,6 +55,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
+    "react-rte": "^0.16.5",
     "react-spinners": "^0.15.0",
     "request": "^2.88.2",
     "socket.io": "^4.8.1",
