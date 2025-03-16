@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
-import { getUserById } from "@/app/api/api";
+import { getUserById, deletActivity } from "@/app/api/api";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog } from "@/app/elements/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
+
 import {
   EllipsisVertical
 } from "lucide-react";
@@ -26,6 +29,7 @@ export default function ActivityCard({ activity , projectId }) {
   const [successMessage, setSuccessMessage] = useState(""); // State for success message
   const [activityData, setActivityData] = useState(activity); 
   const [project, setProjectId] = useState(projectId); 
+  const [open, setOpen] = useState(false);
   function trimActivityName(activityName, maxLength = 10) {
     // Check if the activity name is longer than the max length
     if (activityName.length > maxLength) {
@@ -91,6 +95,17 @@ export default function ActivityCard({ activity , projectId }) {
        });
  }
 
+ const deleteActivity =()=>{
+  deletActivity(project, activityData._id)
+.then((data) => {
+  setActivityData(data.activity);
+    
+})
+.catch((error) => {
+    console.error("Update failed", error);
+});
+ }
+
 
   return (
     <>
@@ -100,12 +115,13 @@ export default function ActivityCard({ activity , projectId }) {
     >
       <div className="flex items-center text-[14px] space-x-2 col-span-2 gap-[10px] items-center">
         <Checkbox id={`activity-${activityData._id}`} />
-        <span className="text-md text-white uppercase text-center bg-[#333333] rounded-lg px-[10px] py-[5px]">
-          {activityData.activityType}
-        </span>
+       { //<span className="text-md text-white uppercase text-center bg-[#333333] rounded-lg px-[10px] py-[5px]">
+         //</span> {activityData.activityType}</div>
+        //</span>
+        }
 
         <span
-          className="text-[18px] text-gray-600 capitalize font-bold"
+          className="text-[16px] text-gray-600 capitalize font-bold"
           title={activityData.activityName}
         >
           {trimActivityName(activityData.activityName, 25)}
@@ -148,10 +164,23 @@ export default function ActivityCard({ activity , projectId }) {
         <DropdownMenuItem  onClick={activateActivity}>Activate Activity</DropdownMenuItem>
         <DropdownMenuItem onClick={deactivate}>Deactivate Activity</DropdownMenuItem>
         <DropdownMenuItem >Edit Activity</DropdownMenuItem>
-        <DropdownMenuItem>Delete Activity</DropdownMenuItem>
+        <DropdownMenuItem onClick={(e)=>setOpen(true)}>Delete Activity</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-      
+              <Dialog open={open} setOpen={setOpen}>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                          Once you delete this, you will no longer have access to this activity. Please make sure before proceeding.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={deleteActivity}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </Dialog>
       </div>
 
       {/* Show success message if available */}

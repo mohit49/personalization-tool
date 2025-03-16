@@ -333,13 +333,12 @@ router.delete("/project/:projectId/:activityId/code/:codeType/:index", authentic
       }
 
       const codeArray = activity[codeType];
-      if (!codeArray || codeArray.length <= index) {
+      if (!codeArray || !codeArray.some(item => item._id.toString() === index)) {
           return res.status(404).json({ message: "Item not found in " + codeType });
       }
 
-      // Remove the item at the specified index
-      codeArray.splice(index, 1);
-      activity[codeType] = codeArray;
+      // Remove item by filtering out the one with the matching ID
+      activity[codeType] = codeArray.filter(item => item._id.toString() !== index);
 
       // Save the updated activity
       await activity.save();

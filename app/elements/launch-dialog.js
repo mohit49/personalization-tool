@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
 import ClipLoader from "react-spinners/ClipLoader";
 import {
   Dialog,
@@ -29,6 +30,7 @@ export default function LaunchDialog({ open, setOpen, projectId, token }) {
   ]);
   const [loading, setLoading] = useState(false); // Add loading state
   const [successMessage, setSuccessMessage] = useState(""); // Success message state
+  const [launchData, setLaunchData] = useState(""); // Success message state
 
   // Fetch launch settings on component mount
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function LaunchDialog({ open, setOpen, projectId, token }) {
       try {
         const launchSettingsData = await getLaunchSettings(projectId, token);
         setEventSelections(launchSettingsData.settings || []);
+        setLaunchData(launchSettingsData);
       } catch (error) {
         console.error("Failed to fetch launch settings:", error);
       } finally {
@@ -102,6 +105,21 @@ export default function LaunchDialog({ open, setOpen, projectId, token }) {
     }
   };
 
+  const codeString = `<script src="${projectId?.jsFilePath.replace(
+    "/home/prez-app/app/server/public/",
+    `https://${window.location.host}/static/`
+  )}"></script>`;
+
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(codeString);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset after 2s
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[90%] sm:max-h-[700px] overflow-y-auto">
@@ -238,7 +256,30 @@ export default function LaunchDialog({ open, setOpen, projectId, token }) {
           <Button onClick={saveSettings}>Save Settings</Button>
         </div>
 
-        <DialogFooter></DialogFooter>
+        <DialogFooter className="flex w-full !flex-col justify-start">
+          <h2><b>Your Project Script</b></h2>
+          <br/>
+
+          <p className="w-full bg-[#eeeeee] p-[0px] !m-0">   <div className="relative w-full bg-[#eeeeee] p-3 rounded-md">
+      <pre className="overflow-x-auto">
+        <code className="language-html">{codeString}</code>
+      </pre>
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 bg-white p-1 rounded-md shadow-md hover:bg-gray-200 transition"
+      >
+        <Copy size={18} className="text-gray-700" />
+      </button>
+      {copied && (
+        <span className="absolute top-2 right-10 bg-green-500 text-white px-2 py-1 text-xs rounded">
+          Copied!
+        </span>
+      )}
+    </div>
+
+
+          </p>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -399,6 +399,24 @@ export const resetPassword = async (email) => {
 };
 
 
+export const deletActivity =async (projectId,activityId) => {
+  try {
+    const response = await axios.delete(`${apiUrl}/api/auth/project/${projectId}/${activityId}/delete`,{
+      withCredentials: true, // ✅ Sends cookies or authentication headers
+      headers: {
+        "Content-Type": "multipart/form-data", // ✅ Required for file upload
+      },
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting project:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+
 
 
 

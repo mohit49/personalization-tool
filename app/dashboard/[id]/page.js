@@ -133,7 +133,7 @@ const Dashboard = () => {
                   <DropdownMenuItem onClick={() => setOpen(true)}>Remove Project</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <LaunchDialog open={openLaunch} setOpen={setOpenLaunch} projectId={project._id}/>
+              <LaunchDialog open={openLaunch} setOpen={setOpenLaunch} projectId={project}/>
               <Dialog open={open} setOpen={setOpen}>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -222,7 +222,7 @@ const Dashboard = () => {
 
             {memoizedActivities && memoizedActivities.length > 0 && (
               <div className="w-full">
-                <h2 className="font-bold text-xl mb-4">Activities</h2>
+               
                 <div className="grid grid-cols-6 gap-4 bg-[#222f3e] p-4 mb-2 rounded-lg">
                   <div className="flex items-center space-x-2 col-span-2">
                     <h2 className="font-bold text-md m-0 text-[#ffffff]">Activities</h2>

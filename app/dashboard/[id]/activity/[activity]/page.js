@@ -3,14 +3,21 @@
 import { useState, useRef, useEffect , useContext } from 'react';
 import axios from 'axios';
 import grapesjs from 'grapesjs';
+import { Input } from "@/components/ui/input";
 import { fetchActivity , updateActivity, deleteCodeItem , fetchProjectById} from '@/app/api/api';
-import { SendHorizontal, Trash2 } from "lucide-react"
+import { SendHorizontal, Trash2, X } from "lucide-react"
 import EditTextPopup from '@/app/elements/edit-text';
 import ClipLoader from "react-spinners/ClipLoader"; 
 import { AppContext } from "@/app/context/provider";
 //import 'grapesjs/dist/css/grapes.min.css';
 //import 'grapesjs-preset-webpage';
 import Header from "@/include/header";
+import { DragBar } from '@/app/elements/dragBar';
+import { Dialog, DialogOverlay  } from "@/app/elements/alert-dialog";
+import { ContainerBox } from '@/app/elements/container-box';
+import { TextBox } from '@/app/elements/text-box';
+import RichTextEditor from '@/app/elements/RichTextEditor';
+
 const VisualEditor = () => {
 
   let newChange = '';
@@ -27,6 +34,12 @@ const VisualEditor = () => {
   const [currentText, setCurrentText] = useState('');
   const [currentElement, setCurrentElement] = useState(null);
   const [dBChanges, setDbChanges] = useState([]);
+  const [activityBar, setActivityBar] = useState(false);
+const [eleData, setEleData] = useState();
+  const [open, setOpen] = useState(false);
+  const [textBox , setTextBoxOpen] = useState();
+  const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1];
+  const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
   function getFullSelector(element) {
     let path = [];
     const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1];
@@ -95,69 +108,186 @@ const VisualEditor = () => {
 
 
 
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  // Handle drop event inside iframe
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const draggedHTMl = event.dataTransfer.getData("text/plain");
+
+
+    if (draggedHTMl && event.target.id.includes("personalized-element"))  {
+      // Append the dragged element inside iframe's body
+      if(draggedHTMl == "slider") {
+        iframeDoc.body.appendChild(draggedHTMl);
+      }
+
+      if(draggedHTMl == "draggable-container") {
+        setEleData({
+          htmlIt : draggedHTMl,
+          eleMent : event.target.id,
+          iframeDoc : iframeRef
+        })
+        setOpen(true)
+       // iframeRef.body.appendChild(draggedHTMl);
+      }
+
+      if (draggedHTMl === "draggable-text") {
+        setEleData({
+          htmlIt: "",
+          eleMent: event.target.id,
+          iframeDoc: iframeRef
+        });
+      var targetEleId = "#" + event.target.id;
+        const targetEle = iframeRef.current.contentDocument.body.querySelector("#" + event.target.id);
+        if (!targetEle) return; // Ensure the element exists before proceeding
+      
+        const EditorDiv = iframeRef.current.contentDocument.createElement("div");
+        const button = iframeRef.current.contentDocument.createElement("button");
+        const textEditor = iframeRef.current.contentDocument.createElement("DIV");
+        textEditor.classList.add("editor-tool");
+        EditorDiv.classList.add("editor-div");
+        button.textContent = "Apply Changes";
+        button.classList.add("apply-changes");
+      
+        EditorDiv.style.minHeight = "300px";
+        EditorDiv.style.marginBottom = "50px";
+      
+       
+        targetEle.appendChild(EditorDiv);
+       
+        EditorDiv.appendChild(textEditor);
+        EditorDiv.appendChild(button);
+        
+        iframeRef.current.contentWindow.quill = new iframeRef.current.contentWindow.Quill(textEditor, {
+          theme: "snow",
+          modules: {
+            toolbar: [
+              [{ font: [] }, { size: [] }], // Font and Size
+              [{ header: [1, 2, 3, 4, 5, 6, false] }], // Headers
+              ["bold", "italic", "underline", "strike"], // Text Formatting
+              [{ color: [] }, { background: [] }], // Text Colors
+              [{ script: "sub" }, { script: "super" }], // Subscript / Superscript
+              [{ align: [] }], // Text Alignment
+              [{ list: "ordered" }, { list: "bullet" }, { list: "check" }], // Lists
+              [{ indent: "-1" }, { indent: "+1" }], // Indentation
+              ["blockquote", "code-block"], // Block Styles
+              ["link", "image", "video"], // Media
+              ["clean"] // Clear Formatting
+            ]
+          }
+        });
+        targetEle?.querySelector(".dropable-div")?.classList.add("hide");
+        button.addEventListener("click", function(){
+var html =  iframeRef.current.contentWindow.quill.root.innerHTML;
+
+updateActivity(projectId, activityId, 
+  {"htmlCode": [
+    {
+      "type" : "html-modified",
+      "selector":targetEleId,
+      "newText": `<div class="ql-content">${html}</div>`
+    }
+],
+  
+
+}
+)
+.then((data) => {
+setActivityData(data.activity);
+setLoading(false);
+loadWebsite(url);
+
+  console.log("Update successful!", data);
+})
+.catch((error) => {
+  console.error("Update failed", error);
+});
+
+
+
+
+        })
+       
+      }
+      
+     
+  
+    }
+  };
+
  
 
   // Function to load the website content into the iframe
   const loadWebsite = async (url) => {
-    if (!url) return ;
-   
-      try {
-        const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
-        const data = await fetchProjectById(projectId);
-       
-        if (data) {
-          fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL}/api/proxy?url=${encodeURIComponent(url)}&jsPath=${data.jsFilePath.split('/public')[1]}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch the website.');
-        }
-        return res.text();
-      })
-      .then((html) => {
-
+    if (!url) return;
   
-        if (iframeRef.current) {
-          const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
-          
-          iframeDoc.open();
-          iframeDoc.write(html);
-          iframeDoc.close();
-      
-          // Wait for the iframe's document to fully load (DOMContentLoaded or load event)
-          iframeRef.current.onload = () => {
-              // These will only run after iframe content is ready
-              injectHighlightCSS(iframeDoc);
-              addHoverHighlighting(iframeDoc);
-              addContextMenu(iframeDoc);
-              enableDragAndDrop(iframeDoc);
-      
-              saveStateToHistory(iframeDoc);
-          };
-      
-          // Optional: If you want to use DOMContentLoaded inside the iframe itself
-          iframeDoc.addEventListener('DOMContentLoaded', () => {
-              injectHighlightCSS(iframeDoc);
-              addHoverHighlighting(iframeDoc);
-              addContextMenu(iframeDoc);
-              enableDragAndDrop(iframeDoc);
-      
-              saveStateToHistory(iframeDoc);
+    // Reset iframe content before executing function
+    if (iframeRef.current) {
+      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write("<html><head></head><body></body></html>");
+      iframeDoc.close();
+    }
+  
+    try {
+      const projectId = window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Extract projectId
+      const data = await fetchProjectById(projectId);
+  
+      if (data) {
+        fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL}/api/proxy?url=${encodeURIComponent(url)}&jsPath=${data.jsFilePath.split('/public')[1]}`)
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error("Failed to fetch the website.");
+            }
+            return res.text();
+          })
+          .then((html) => {
+            if (iframeRef.current) {
+              const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+  
+              iframeDoc.open();
+              iframeDoc.write(html);
+              iframeDoc.close();
+  
+              let executed = false; // Flag to ensure execution happens once
+  
+              const executeScripts = () => {
+                if (!executed) {
+                  executed = true; // Prevent duplicate execution
+                  setLoading(true);
+                  VecRenderChanges();
+                  setTimeout(() => {
+                    injectHighlightCSS(iframeDoc);
+                    addHoverHighlighting(iframeDoc);
+                    addContextMenu(iframeDoc);
+                    enableDragAndDrop(iframeDoc);
+                    setLoading(false);
+                    iframeDoc.addEventListener("dragover", handleDragOver);
+                    iframeDoc.addEventListener("drop", handleDrop);
+                  }, 3000);
+                }
+              };
+  
+              // First attempt: Wait for iframe to load completely
+              iframeRef.current.onload = executeScripts;
+  
+              // Fallback: Listen for DOMContentLoaded in case onload doesn't trigger
+              iframeDoc.addEventListener("DOMContentLoaded", executeScripts);
+            }
+          })
+          .catch((error) => {
+            console.error(error);
           });
       }
-      
-      })
-      .catch((error) => {
-        console.error(error);
-        //alert('Failed to load the website. Please check the URL and try again.');
-      });
-          
-        }
-      } catch (err) {
-        console.error(err.message);
-      }
- 
-  
+    } catch (err) {
+      console.error(err.message);
+    }
   };
+  
+  
 
   // Save current iframe state to history (Undo stack)
   const saveStateToHistory = (iframeDoc) => {
@@ -183,6 +313,7 @@ const VisualEditor = () => {
        ]);
  const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
     const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
+    setLoading(true);
        updateActivity(projectId, activityId, 
         {"htmlCode": [
           {
@@ -197,6 +328,9 @@ const VisualEditor = () => {
       )
     .then((data) => {
       setActivityData(data.activity);
+      setLoading(false);
+      loadWebsite(url);
+     
         console.log("Update successful!", data);
     })
     .catch((error) => {
@@ -263,7 +397,7 @@ const VisualEditor = () => {
   // Function to add hover highlighting to the elements in the iframe
   const addHoverHighlighting = (iframeDoc) => {
     const body = iframeDoc.body;
-    const allElements = body.querySelectorAll('*');
+    const allElements = body.querySelectorAll('*:not(.editor-div):not(.exclude2)');
 
     allElements.forEach((element) => {
       element.addEventListener('mouseover', (event) => {
@@ -327,7 +461,7 @@ const VisualEditor = () => {
   // Function to add context menu functionality
   const addContextMenu = (iframeDoc) => {
     const body = iframeDoc.body;
-    const allElements = body.querySelectorAll('*');
+    const allElements = body.querySelectorAll('*:not(.editor-div)');
 
     allElements.forEach((element) => {
       element.addEventListener('contextmenu', (e) => {
@@ -391,6 +525,7 @@ const VisualEditor = () => {
              ]);
              const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
           const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
+          setLoading(true);
              updateActivity(projectId, activityId, 
               {"htmlCode": [
                 {
@@ -405,6 +540,9 @@ const VisualEditor = () => {
             )
           .then((data) => {
               console.log("Update successful!", data);
+            
+              setActivityData(data.activity);
+              loadWebsite(url);
           })
           .catch((error) => {
               console.error("Update failed", error);
@@ -426,13 +564,18 @@ const VisualEditor = () => {
       case 'insert-after':
         if (element) {
           const newElement = document.createElement('div');
-          newElement.innerText = 'New Element';
+          newElement.id = "personalized-element-" + generateDateTime4DigitCode();
+          newElement.innerText = 'New Element Inserted';
+          
+          // Insert the new element after 'element'
           element.parentNode.insertBefore(newElement, element.nextSibling);
-          newChange = `Inserted new div element after ${getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, '')}`;
-
-      
+          
+          newChange = newElement;
+          
+          const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+          
      
-            const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+           
            
         
             //newElement.innerHTML = newText;
@@ -449,7 +592,7 @@ const VisualEditor = () => {
                   {
                     "type" : "inserted-after",
                     "selector":  getFullSelector(element).replace(/(?<=\bhtml\b)(\.[a-zA-Z0-9\-_]+)*|(?<=\bbody\b)(\.[a-zA-Z0-9\-_]+)*/g, ''),
-                    "newText": newChange
+                    "newText": newElement.outerHTML
                   }
               ],
                 
@@ -458,6 +601,8 @@ const VisualEditor = () => {
               )
             .then((data) => {
                 console.log("Update successful!", data);
+                setActivityData(data.activity);
+                loadWebsite(url);
             })
             .catch((error) => {
                 console.error("Update failed", error);
@@ -568,7 +713,7 @@ const VisualEditor = () => {
     var changeType;
     const projectId =window.location.pathname.split("/activity/")[0].split("dashboard/")[1]; // Assuming the projectId is at index 1
     const activityId = window.location.pathname.split("/activity/")[1]; // Assuming the activityId is at index 3
-    if(change?.type == "html-modified" || change?.type == "inserted-after" || change?.type == "remove-element" || change?.type == "inserted-before" ) {
+    if(change?.type == "html-modified" || change?.type == "text-editor" || change?.type == "inserted-after" || change?.type == "remove-element" || change?.type == "container-added" || change?.type == "inserted-before" ) {
       changeType = "htmlCode"
     }
    
@@ -584,7 +729,9 @@ const VisualEditor = () => {
     });
 }
 
-
+const loadWebsiteUrl = () =>{
+  loadWebsite(url)
+}
   return (
     <>
      {currentText && <EditTextPopup
@@ -613,18 +760,16 @@ const VisualEditor = () => {
         </button>
         </div>
         <div className='flex flex-row gap-2 items-center'>
-        <button
-          className="w-[200px] p-2 text-white  bg-green-500 rounded hover:bg-green-600"
-          onClick={handleUndo}  >Save Activity</button>
+     
         </div>
         </div>
     </div> }
     {activity &&  <div className="flex h-screen">
-
+{activityBar &&
       <div className="w-1/4 p-4 bg-gray-100 shadow-xl rounded-lg h-screen ">
       
 
-        <h3 className="mt-4 text-lg font-semibold">Changes:</h3>
+        <h3 className="mt-4 text-lg font-semibold relative">Changes: <span className='absolute right-0 top-[-15px]' onClick={(e)=> setActivityBar(!activityBar)}><X /></span></h3>
         <ul className="mt-2 h-[70vh] overflow-y-scroll overflow-x-hidden">
 
           {activity?.htmlCode.map((change, index) => (
@@ -642,7 +787,7 @@ const VisualEditor = () => {
 
        
       </div>
-
+    }
       <div className="relative w-full">
       {loading &&  <div className='w-full absolute bg-[#f5f5f5] h-full z-10 left-0 top-0 bg-opacity-75 flex items-center justify-center flex-row'>  <ClipLoader size={30} color="#888888" /></div>}
         <iframe
@@ -653,7 +798,16 @@ const VisualEditor = () => {
           sandbox="allow-scripts allow-same-origin"
         ></iframe>
         {renderContextMenu()}
+        <DragBar setActivityBar={setActivityBar} activityBar={activityBar}/>
       </div>
+       <Dialog open={open} setOpen={setOpen} >
+                     <ContainerBox open={open} setOpen={setOpen}  eleData={eleData} projectId={projectId} activityId={activityId} setActivityData={setActivityData} loadWebsiteUrl={loadWebsiteUrl}/>
+                    </Dialog>
+
+                    <Dialog open={textBox} setOpen={setTextBoxOpen} className="z-[5]" >
+                     <TextBox open={textBox} setOpen={setTextBoxOpen}  eleData={eleData} projectId={projectId} activityId={activityId} setActivityData={setActivityData} loadWebsiteUrl={loadWebsiteUrl}/>
+                   
+                    </Dialog>
     </div> }
     </>
   );

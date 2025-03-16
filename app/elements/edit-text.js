@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const EditTextPopup = ({ isOpen, onClose, initialText, onSave }) => {
-  const [text, setText] = useState(initialText || '');
+  const [text, setText] = useState(initialText);
 
   const handleSave = () => {
     onSave(text);
