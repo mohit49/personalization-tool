@@ -1,10 +1,12 @@
 "use client";
 import { createContext, useState, useEffect } from "react";
 import { fetchUserProfile } from "@/app/api/api";
-import { useRouter, usePathname  } from "next/navigation"; // Correct import for App Router
+import { useRouter, usePathname } from "next/navigation"; // Correct import for App Router
 export const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  const [modalEdited, setModalEdited] = useState(false);
+  const [activity, setActivityData] = useState("");
   const [user, setUser] = useState(null);
   const [theme, setTheme] = useState("light");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -14,29 +16,40 @@ export function AppProvider({ children }) {
   const router = useRouter();
   const pathName = usePathname();
   useEffect(() => {
-
     async function getUserData() {
-      
-
       const userData = await fetchUserProfile();
       if (userData) {
         setUser(userData);
         setIsLoggedIn(true);
-      }
-      else {
+      } else {
         setIsLoggedIn(false);
         router.push(`/login/`);
       }
     }
-    if(!pathName.includes("reset-password")) {
+    if (!pathName.includes("reset-password")) {
       getUserData();
     }
-
-
   }, [isLoggedIn]);
 
   return (
-    <AppContext.Provider value={{ user, setUser, theme, setTheme, isLoggedIn, setIsLoggedIn , projects, setProjects , setCurrentProjects , currentProject }}>
+    <AppContext.Provider
+      value={{
+        user,
+        setUser,
+        theme,
+        setTheme,
+        isLoggedIn,
+        setIsLoggedIn,
+        projects,
+        setProjects,
+        setCurrentProjects,
+        currentProject,
+        modalEdited,
+        setModalEdited,
+        activity,
+        setActivityData
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

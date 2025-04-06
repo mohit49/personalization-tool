@@ -1,5 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    turboMode: true, // Speeds up local refreshes
+  },
+  webpack(config, { isServer }) {
+    if (!isServer) {
+      config.resolve.fallback = { fs: false };
+    }
+    return config;
+  },
+  webpackDevMiddleware: config => {
+    config.watchOptions = {
+      poll: 1000, // Check for changes every second
+      aggregateTimeout: 300, // Delay before rebuilding
+    };
+    return config;
+  },
   images: {
     unoptimized: true, // 👈 Add this line
     remotePatterns: [

@@ -349,6 +349,18 @@ export const fetchActivity = async (projectId, activityId) => {
   }
 };
 
+// Define a function to fetch activity data by projectId and activityId
+export const fetchModal = async (projectId, activityId, modalId) => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/auth/project/${projectId}/activity/${activityId}/modal/${modalId}`);
+    console.log('Activity fetched successfully:', response.data);
+    return response.data; // return the activity data from the response
+  } catch (error) {
+    console.error('Error fetching activity:', error.response ? error.response.data : error.message);
+    throw error; // Optionally, rethrow error for further handling
+  }
+};
+
 
 export const updateActivity = async (projectId, activityId, activityData) => {
   try {
@@ -414,6 +426,39 @@ export const deletActivity =async (projectId,activityId) => {
     throw error;
   }
 };
+
+
+export const updateModal = async (projectId, activityId, modalId , activityData) => {
+  try {
+      const response = await axios.put(`${apiUrl}/api/auth/project/${projectId}/activity/${activityId}/modal/${modalId}`, activityData,  {
+        withCredentials: true, // Sends cookies or authentication headers
+        headers: {
+          'Content-Type': 'application/json',
+        } } );
+      console.log("Activity updated successfully:", response.data);
+      return response.data;
+  } catch (error) {
+      console.error("Error updating activity:", error.response?.data || error.message);
+      throw error;
+  }
+};
+
+
+export const updateTextEditorData = async (projectId, activityId, editorId , activityData) => {
+  try {
+      const response = await axios.put(`${apiUrl}/api/auth/project/${projectId}/activity/${activityId}/htmlContent/${editorId}`, activityData,  {
+        withCredentials: true, // Sends cookies or authentication headers
+        headers: {
+          'Content-Type': 'application/json',
+        } } );
+      console.log("Activity updated successfully:", response.data);
+      return response.data;
+  } catch (error) {
+      console.error("Error updating activity:", error.response?.data || error.message);
+      throw error;
+  }
+};
+
 
 
 

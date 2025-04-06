@@ -1,6 +1,7 @@
 import { useEffect, useState , useContext } from "react";
-import { Activity , Images ,ChevronRight, Heading, Type, Book} from "lucide-react"
-  export function DragBar({setActivityBar, activityBar }) {
+import { Activity , Images ,ChevronRight, Heading, Type, Book, MessageSquare} from "lucide-react"
+
+  export function DragBar({setActivityBar, activityBar , AddModelBox  }) {
     const [draggedElement, setDraggedElement] = useState(null);
     const handleDragStart = (event, id) => {
         
@@ -64,7 +65,22 @@ import { Activity , Images ,ChevronRight, Heading, Type, Book} from "lucide-reac
           userSelect: "none",
         }}
       >  <Book />  </div>Container</li>      
-    
+    <li className="text-[#ffffff] flex flex-row item-center gap-[10px] pointer">|</li>
+
+    <li className="text-[#ffffff] flex flex-row item-center gap-[10px] pointer" > 
+      {/* Draggable Element */}
+      <div
+      onClick={AddModelBox}
+       
+        style={{
+        
+       
+          textAlign: "center",
+          lineHeight: "50px",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+      >  <MessageSquare />  </div>Add Modal Box</li>   
       </ul>
      </div>
      </>

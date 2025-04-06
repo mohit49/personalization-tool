@@ -32,6 +32,7 @@ const activitySchema = new mongoose.Schema({
       type: { type: String, required: true },
       selector: { type: String, required: true },
       newText: { type: String, required: true },
+      settings:{ type: Object, required: false },
       updatedAt: { type: Date, default: Date.now },
       updatedBy: { type: String }
     }

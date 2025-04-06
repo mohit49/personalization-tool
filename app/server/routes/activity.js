@@ -83,7 +83,7 @@ router.put("/project/:projectId/:activityId/update", authenticateToken, async (r
     const { projectId, activityId } = req.params;
     const {
       activityName, availability, activityType, activityUrl, location, 
-      email, htmlCode, cssCode, jsCode, jsonData, activityStatus
+      email, htmlCode, cssCode, jsCode, jsonData, activityStatus 
     } = req.body;
 
     const updatedBy = req.user.id;
@@ -127,7 +127,7 @@ router.put("/project/:projectId/:activityId/update", authenticateToken, async (r
         activity[key] = newValue;
       }
     }
-
+  
     // Handle versioned fields - push to history arrays
     if (htmlCode) {
       if (Array.isArray(htmlCode)) {
@@ -317,6 +317,107 @@ router.get("/project/:projectId/activity/:activityId",  async (req, res) => {
   }
 });
 
+router.get("/project/:projectId/activity/:activityId/modal/:modalId",  async (req, res) => {
+  try {
+    const { projectId, activityId, modalId  } = req.params;
+
+    // Find the project to ensure it exists
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found." });
+    }
+
+    // Find the activity by activityId and projectId
+    const activity = await Activity.findOne({ _id: activityId, projectId });
+    if (!activity) {
+      return res.status(404).json({ message: "Activity not found or does not belong to the specified project." });
+    }
+
+    const modalData = activity?.htmlCode.find(item => item._id.toString() === modalId);
+    if (!modalData) {
+      return res.status(404).json({ message: "modal not found or does not belong to the specified project." });
+    }
+    // Respond with the found activity
+    res.status(200).json({
+      message: "Modal fetched successfully",
+      activity: modalData
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred while fetching the activity." });
+  }
+});
+
+router.put("/project/:projectId/activity/:activityId/modal/:modalId",  async (req, res) => {
+  try {
+    const { projectId, activityId, modalId  } = req.params;
+    const { htmlCode  } = req.body;
+    // Find the project to ensure it exists
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found." });
+    }
+
+    // Find the activity by activityId and projectId
+    const activity = await Activity.findOne({ _id: activityId, projectId });
+    if (!activity) {
+      return res.status(404).json({ message: "Activity not found or does not belong to the specified project." });
+    }
+
+    const modalIndex = activity?.htmlCode.findIndex(item => item._id.toString() === modalId);
+    if (modalIndex < 0) {
+      return res.status(404).json({ message: "modal not found or does not belong to the specified project." });
+    }
+    activity.htmlCode[modalIndex].settings = htmlCode[0].settings;
+    activity.htmlCode[modalIndex].newText = htmlCode[0].newText;
+    await activity.save();
+    // Respond with the found activity
+    res.status(200).json({
+      message: "Modal fetched successfully",
+      activity: activity
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred while fetching the activity." });
+  }
+});
+
+router.put("/project/:projectId/activity/:activityId/htmlContent/:editorId",  async (req, res) => {
+  try {
+    const { projectId, activityId, editorId  } = req.params;
+    const { htmlCode  } = req.body;
+    // Find the project to ensure it exists
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found." });
+    }
+
+    // Find the activity by activityId and projectId
+    const activity = await Activity.findOne({ _id: activityId, projectId });
+    if (!activity) {
+      return res.status(404).json({ message: "Activity not found or does not belong to the specified project." });
+    }
+
+    const modalIndex = activity?.htmlCode.findIndex(item => item._id.toString() === editorId);
+    if (modalIndex < 0) {
+      return res.status(404).json({ message: "modal not found or does not belong to the specified project." });
+    }
+    
+    activity.htmlCode[modalIndex].newText = htmlCode[0].newText;
+    await activity.save();
+    // Respond with the found activity
+    res.status(200).json({
+      message: "Modal fetched successfully",
+      activity: activity
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred while fetching the activity." });
+  }
+});
+
+
+
 
 router.delete("/project/:projectId/:activityId/code/:codeType/:index", authenticateToken, async (req, res) => {
   try {
@@ -352,6 +453,10 @@ router.delete("/project/:projectId/:activityId/code/:codeType/:index", authentic
       res.status(500).json({ message: "An error occurred while deleting the code item." });
   }
 });
+
+
+
+
 
 
 module.exports = router;
