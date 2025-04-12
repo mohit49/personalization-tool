@@ -24,7 +24,7 @@ router.get("/projects/:projectId", async (req, res) => {
 
   const script = `
       const project = {
-          id: "${projectId}",
+          id: "${projectData._id}",
           name: "${projectData.projectName}",
           domain: "${projectData.domain}",
       };
@@ -35,7 +35,7 @@ router.get("/projects/:projectId", async (req, res) => {
   `;
 
   // Check if it's a minified request
-  if (projectId.endsWith(".min.js")) {
+  if (projectId.endsWith(".min.jys")) {
       const minified = UglifyJS.minify(script, {
           compress: {
               drop_console: true,

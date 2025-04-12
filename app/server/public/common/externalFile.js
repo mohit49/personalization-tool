@@ -1,3 +1,4 @@
+"use client";
 var mode;
 function initializeEditorPlugin() {
   const quillCSS = document.createElement("link");
@@ -171,7 +172,7 @@ function exicutePrezy() {
         backDrop = document.createElement("DIV"),
         closeIcon = document.createElement("span"),
       
-        classes = ["prezify-popup", "prezify-shadow", ...modalClassMutatid  , "hide"];
+        classes = ["prezify-popup", "prezify-shadow", ...modalClassMutatid  , "hide" , !(mode == "editor") ? ele?.settings?.position : "NO-POSITION" , !(mode == "editor") ? ele?.settings?.animate ? "animate" : "no-animate" : "no-animate"];
         closeIcon.classList.add("prezify-close-icon");
       closeIcon.innerHTML = `&times;`;
       
@@ -179,10 +180,13 @@ function exicutePrezy() {
       backDrop.id = "backDrop-" + ele._id,
         backDrop.classList.add("prezify-modal-backdrop");
         popDivInner.id = modalId;
+        popDiv.appendChild(popDivInner);
+        popDiv.append(closeIcon);
       document.querySelector(modalContainer).appendChild(popDiv);
+      if(ele.backDrop) {
       document.querySelector(modalContainer).appendChild(backDrop);
-      popDiv.appendChild(popDivInner);
-      popDiv.appendChild(closeIcon);
+      }
+
       backDrop.classList.add("hide");
 popDiv.dataset.modelId = ele._id,
       Object.assign(popDiv.style, {
@@ -211,6 +215,7 @@ popDiv.dataset.modelId = ele._id,
 
       }
 
+
       
       if (mode == "editor") {
         const headDiv = document.createElement("div");
@@ -237,15 +242,14 @@ popDiv.dataset.modelId = ele._id,
         });
 
         popDiv.insertAdjacentHTML("beforebegin", headDiv.outerHTML);
-        popDiv.innerHTML = coloumn;
+        popDivInner.innerHTML += coloumn;
       } else {
         Object.assign(popDiv.style, {
           position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
+         
+         
           zIndex: 1000,
-          boxShadow: " rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
+        
         });
         Object.assign(backDrop.style, {
           position: "fixed",
@@ -406,13 +410,15 @@ popDiv.dataset.modelId = ele._id,
   console.log("Project Details:", project);
   // Add any other logic or functionality you want in the JS file
 }
-window.parent.VecRenderChanges = function () {
+window.parent.addEventListener("VecRender", function (){
   if (window.location.host.includes("app.mazzl.ae")) {
     mode = "editor";
     initializeEditorPlugin();
     exicutePrezy();
   }
-};
+
+})
+ 
 
 if (!window.location.host.includes("app.mazzl.ae")) {
   exicutePrezy();

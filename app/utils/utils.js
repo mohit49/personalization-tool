@@ -1,3 +1,4 @@
+"use client";
 import { SquarePen } from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { AppContext } from "@/app/context/provider"; // Import AppContext

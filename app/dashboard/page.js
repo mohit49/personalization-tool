@@ -96,7 +96,7 @@ export default function Dashboard() {
 
     if (loading) {
       return (
-        <div className="flex justify-center items-center my-4">
+        <div className="flex justify-center items-center my-4 min-h-[600px]">
           {/* Displaying the ClipLoader while loading */}
           <ClipLoader size={50} color="#000000" />
         </div>

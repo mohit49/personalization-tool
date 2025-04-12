@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import MonacoEditor from "@monaco-editor/react";
 import { SketchPicker } from "react-color";
-import { updateActivity, fetchModal , updateModal } from "@/app/api/api";
+import { updateActivity, fetchModal, updateModal } from "@/app/api/api";
 
 import { AppContext } from "@/app/context/provider"; // Import AppContext
 import {
@@ -17,6 +17,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { Radio } from "lucide-react";
 
 export function ModalBox({
   open,
@@ -26,9 +27,10 @@ export function ModalBox({
   projectId,
 
   loadWebsiteUrl,
-  modalId
+  modalId,
 }) {
-      const { modalEdited, setModalEdited, activity, setActivityData  } = useContext(AppContext);
+  const { modalEdited, setModalEdited, activity, setActivityData } =
+    useContext(AppContext);
   const [containerClass, setContainerClass] = useState("");
   const [maxWidth, setMaxWidth] = useState("");
   const [maxHeight, setMaxHeight] = useState("");
@@ -38,6 +40,7 @@ export function ModalBox({
   const [backGroundColor, setBackgroundColor] = useState(
     "rgba(255, 255, 255, 1)"
   );
+  const [position, setPosition] = useState("center");
   const [overlayBg, setOverlayBg] = useState("rgba(0, 0, 0, 0.5)");
 
   const [showBgPicker, setShowBgPicker] = useState(false);
@@ -50,9 +53,11 @@ export function ModalBox({
   const [initializeOnLoad, setInitializeOnLoad] = useState(false);
   const [delayMs, setDelayMs] = useState("");
   const [inputOnElementExist, setInputOnElementExist] = useState("");
-
+  const [responsive, setResponsive] = useState(false);
+  const [backDrop, setBackDrop] = useState(false);
   const bgPickerRef = useRef(null);
   const overlayPickerRef = useRef(null);
+  const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -95,6 +100,10 @@ export function ModalBox({
                 initializeOnLoad,
                 delayMs,
                 inputOnElementExist,
+                responsive,
+                position,
+                backDrop,
+                animate
               },
             },
           ],
@@ -106,39 +115,43 @@ export function ModalBox({
         throw error;
       }
     } else {
-        try {
-            const response = await updateActivity(projectId, activityId, {
-              htmlCode: [
-                {
-                  type: "modal-added",
-                  selector: "body",
-                  newText: "data popup",
-                  settings: {
-                    containerClass,
-                    maxWidth,
-                    maxHeight,
-                    minWidth,
-                    minHeight,
-                    backGroundColor,
-                    overlayBg,
-                    showButtonOptions,
-                    buttonId,
-                    buttonName,
-                    showCustomCode,
-                    customCode,
-                    initializeOnLoad,
-                    delayMs,
-                    inputOnElementExist,
-                  },
-                },
-              ],
-            });
-    
-            return response.data;
-          } catch (error) {
-            console.error("Error updating modal box:", error);
-            throw error;
-          }
+      try {
+        const response = await updateActivity(projectId, activityId, {
+          htmlCode: [
+            {
+              type: "modal-added",
+              selector: "body",
+              newText: "data popup",
+              settings: {
+                containerClass,
+                maxWidth,
+                maxHeight,
+                minWidth,
+                minHeight,
+                backGroundColor,
+                overlayBg,
+                showButtonOptions,
+                buttonId,
+                buttonName,
+                showCustomCode,
+                customCode,
+                initializeOnLoad,
+                delayMs,
+                inputOnElementExist,
+                position,
+                responsive,
+                backDrop,
+                animate
+              },
+            },
+          ],
+        });
+
+        return response.data;
+      } catch (error) {
+        console.error("Error updating modal box:", error);
+        throw error;
+      }
     }
   };
 
@@ -152,6 +165,7 @@ export function ModalBox({
           setBackgroundColor(data?.activity?.settings?.backGroundColor);
           setCustomCode(data?.activity?.settings?.customCode);
           setDelayMs(data?.activity?.settings?.delayMs);
+          setResponsive(data?.activity?.settings?.responsive);
           setInitializeOnLoad(data?.activity?.settings?.initializeOnLoad);
           setInputOnElementExist(data?.activity?.settings?.inputOnElementExist);
           setMaxHeight(data?.activity?.settings?.maxHeight);
@@ -161,6 +175,9 @@ export function ModalBox({
           setOverlayBg(data?.activity?.settings?.overlayBg);
           setShowButtonOptions(data?.activity?.settings?.showButtonOptions);
           setShowCustomCode(data?.activity?.settings?.showCustomCode);
+          setPosition(data?.activity?.settings?.position);
+          setBackDrop(data?.activity?.settings?.backDrop);
+          setAnimate(data?.activity?.settings?.animate);
         })
         .catch((error) => {
           console.error("Failed to fetch activity:", error);
@@ -171,7 +188,9 @@ export function ModalBox({
       setBackgroundColor("");
       setCustomCode("");
       setDelayMs("");
+      setResponsive(false);
       setInitializeOnLoad(false);
+      setPosition("center");
       setInputOnElementExist("");
       setMaxHeight("");
       setMaxWidth("");
@@ -180,6 +199,9 @@ export function ModalBox({
       setOverlayBg("");
       setShowButtonOptions(false);
       setShowCustomCode(false);
+      setPosition("center");
+      setBackDrop(false);
+      setAnimate(false);
     }
   }, [open]);
 
@@ -188,8 +210,9 @@ export function ModalBox({
       <AlertDialogHeader>
         <AlertDialogTitle>Setup Modal Box</AlertDialogTitle>
         <AlertDialogDescription>
-          Configure your modal box with custom styles, buttons, and optional also add "dark-close" , "light-close" to change icon colour
-          custom code.
+          Configure your modal box with custom styles, buttons, and optional
+          also add "dark-close" , "light-close" to change icon colour custom
+          code.
         </AlertDialogDescription>
       </AlertDialogHeader>
 
@@ -281,6 +304,27 @@ export function ModalBox({
             Initialize on Page Load
           </label>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="initializeOnLoad"
+            checked={animate}
+            onCheckedChange={setAnimate}
+          />
+          <label htmlFor="initializeOnLoad" className="text-sm font-medium">
+           Animate Popup if not center
+          </label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="responsive"
+            checked={responsive}
+            onCheckedChange={setResponsive}
+          />
+          <label htmlFor="responsive" className="text-sm font-medium">
+            Mobile Responsive
+          </label>
+        </div>
         {initializeOnLoad && (
           <Input
             placeholder="Delay in Milliseconds"
@@ -289,7 +333,89 @@ export function ModalBox({
             onChange={(e) => setDelayMs(e.target.value)}
           />
         )}
+        <p>Pop Up Position</p>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="radio"
+              id="bottom-left"
+              name="position"
+              value="bottom-left"
+              checked={position === "bottom-left"}
+              onChange={(e) => setPosition(e.target.value)}
+            />
+            <label htmlFor="bottom-left" className="text-sm font-medium">
+              Bottom Left
+            </label>
+          </div>
 
+          <div className="flex items-center gap-2">
+            <input
+              type="radio"
+              id="bottom-right"
+              name="position"
+              value="bottom-right"
+              checked={position === "bottom-right"}
+              onChange={(e) => setPosition(e.target.value)}
+            />
+            <label htmlFor="bottom-right" className="text-sm font-medium">
+              Bottom Right
+            </label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="radio"
+              id="top-left"
+              name="position"
+              value="top-left"
+              checked={position === "top-left"}
+              onChange={(e) => setPosition(e.target.value)}
+            />
+            <label htmlFor="top-left" className="text-sm font-medium">
+              Top Left
+            </label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="radio"
+              id="top-right"
+              name="position"
+              value="top-right"
+              checked={position === "top-right"}
+              onChange={(e) => setPosition(e.target.value)}
+            />
+            <label htmlFor="top-right" className="text-sm font-medium">
+              Top Right
+            </label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="radio"
+              id="center"
+              name="position"
+              value="center"
+              checked={position === "center"}
+              onChange={(e) => setPosition(e.target.value)}
+            />
+            <label htmlFor="center" className="text-sm font-medium">
+              Center
+            </label>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="backDrop"
+            checked={backDrop}
+            onCheckedChange={setBackDrop}
+          />
+          <label htmlFor="backDrop" className="text-sm font-medium">
+            Enable Back Drop
+          </label>
+        </div>
         <div className="flex items-center gap-2">
           <Checkbox
             id="showButtonOptions"

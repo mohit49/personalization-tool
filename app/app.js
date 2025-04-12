@@ -7,7 +7,9 @@ export default function App({ children }) {
   return (
     <AppProvider>
          <Header />
+         <main className="flex flex-col min-h-[600px]">
       {children}
+      </main>
       <Footer/>
     </AppProvider>
   );

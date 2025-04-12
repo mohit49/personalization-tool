@@ -33,7 +33,7 @@ export const HomeBanner =()=>{
       };
 
     return (
-        <div className="flex flex-col justify-between items-start w-full px-[20px] py-[20px] my-[30px] container rounded-lg bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-300  " >
+        <div className="flex flex-col overflow-x-hidden justify-between items-start w-full px-[20px] py-[20px] my-[30px] container rounded-lg bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-300  " >
   <div style={shineEffectStyle}></div>
   <style>
         {`

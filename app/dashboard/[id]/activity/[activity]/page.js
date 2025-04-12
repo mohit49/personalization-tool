@@ -283,7 +283,15 @@ const VisualEditor = () => {
                 if (!executed) {
                   executed = true; // Prevent duplicate execution
                   setLoading(true);
-                  VecRenderChanges();
+                  let tripleClick = new CustomEvent('VecRender', {
+                    bubbles: true,
+                    detail: {
+                      message : "VEC"
+                    }
+                });
+    
+                window.dispatchEvent(tripleClick);
+                
                   setTimeout(() => {
                     injectHighlightCSS(iframeDoc);
                     addHoverHighlighting(iframeDoc);
