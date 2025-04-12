@@ -31,8 +31,8 @@ export default function Home() {
   };
 
   return (
-    <section className='w-full h-[100vh] flex flex-col bg-[#6a45f9]'>
-      <Header />
+    <section className='w-full  min-h-[600px] flex flex-col bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-300 py-10'>
+   
       <Card className="w-[400px] mx-auto mt-[5%] opacity-0 animate-fadeIn">
         <CardHeader>
           <CardTitle className="text-[30px]">Login to Your Projects</CardTitle>

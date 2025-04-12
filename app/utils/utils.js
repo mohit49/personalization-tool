@@ -8,6 +8,7 @@ import {
   deletActivity,
   updateTextEditorData
 } from "@/app/api/api";
+const apiUrl = "https://app.mazzl.ae/api/auth";
 export function exicutesFunctions({
   projectId,
   activityId,
@@ -112,21 +113,25 @@ export function exicuteTextEditor({
   setLoading,
   loadWebsite,
 }) {
+  var iframeRf = iframeRef;
   const body = iframeDoc.body;
   const allModal = body?.querySelectorAll(".ql-content");
   allModal.forEach((ele) => {
     const editorId = ele.parentNode.dataset.id;
     const EditorDiv =
-    iframeRef.current.contentDocument.createElement("div");
+    iframeRf.current.contentDocument.createElement("div");
   const button =
-    iframeRef.current.contentDocument.createElement("button");
+  iframeRf.current.contentDocument.createElement("button");
+  const buttonHTML =
+  iframeRef.current.contentDocument.createElement("button");
   const textEditor =
     iframeRef.current.contentDocument.createElement("DIV");
   textEditor.classList.add("editor-tool");
   EditorDiv.classList.add("editor-div");
   button.textContent = "Apply Changes";
   button.classList.add("apply-changes");
-
+  buttonHTML.textContent = "Edit HTML";
+        buttonHTML.classList.add("edit-html");
   EditorDiv.style.minHeight = "300px";
   EditorDiv.style.marginBottom = "50px";
 
@@ -135,8 +140,8 @@ export function exicuteTextEditor({
 
   EditorDiv.appendChild(textEditor);
   EditorDiv.appendChild(button);
-
-  iframeRef.current.contentWindow.quill = new iframeRef.current.contentWindow.Quill(ele, {
+  EditorDiv.appendChild(buttonHTML);
+  iframeRf.current.contentWindow.quill = new iframeRf.current.contentWindow.Quill(ele, {
       theme: "snow",
       modules: {
         toolbar: [
@@ -150,44 +155,84 @@ export function exicuteTextEditor({
           [{ indent: "-1" }, { indent: "+1" }], // Indentation
           ["blockquote", "code-block"], // Block Styles
           ["link", "image", "video"], // Media
-          ["clean"], // Clear Formatting
+          ["clean"], 
+          [
+            'bold', 'italic', 'underline',  // Existing buttons
+            {
+              name: 'customButton',
+              action: function () {
+                alert('Custom button clicked!');
+              },
+              className: 'fa fa-pencil',  // Or your custom icon class or image URL
+              title: 'Custom Button'
+            }
+          ]
         ]
       },
     });
 
      // Image handler for the 'image' button in the toolbar
-  var ImageHandler = function() {
-    var input =  iframeRef.current.contentDocument.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
-    input.style.display = 'none';
-    input.onchange = function() {
-      var file = input.files[0];
-      var formData = new FormData();
-      formData.append('image', file);
-
-      // Send image to your API
-      fetch('/upload-image', {
-        method: 'POST',
-        body: formData,
-      })
-      .then(response => response.json())
-      .then(data => {
-        // Get the image URL from your API response
-        const imageUrl = data.imageUrl;
-        // Insert the image URL into the Quill editor
-        var range =  iframeRef.current.contentWindow.quill.getSelection();
-        iframeRef.current.contentWindow.quill.insertEmbed(range.index, 'image', imageUrl);
-      })
-      .catch(error => {
-        console.error('Error uploading image:', error);
-      });
+     var ImageHandler = function() {
+      // Create a file input element dynamically inside the iframe's document
+      var input = iframeRef?.current?.contentDocument?.createElement('input');
+      iframeRef?.current?.contentDocument?.body?.appendChild(input);
+      input.setAttribute('type', 'file');
+      input.style.display = 'none'; // Hide the input element
+      input.click(); // Trigger the file selection dialog
+    
+      // Add an event listener for when the file selection changes
+      input.onchange = function(event) {
+       const eventD = event;
+       eventD.preventDefault();
+       eventD.stopPropagation();
+        var file = input.files[0];
+        
+        if (!file) {
+          return;
+        }
+        
+        // Create a new FormData object and append the selected file
+        var formData = new FormData();
+        formData.append('image', file);
+        formData.append("projectId", projectId);
+        formData.append("activityId", activityId);
+    
+        // Make the fetch request to upload the file
+        fetch(`${apiUrl}/project/${projectId}/activity/${activityId}/uploadFile`, {
+          method: 'POST',
+          body: formData, // Use FormData directly, which automatically sets the correct headers
+          credentials: 'include', // Include credentials like cookies
+        })
+        .then(response => response.json()) // Parse the JSON response
+        .then(data => {
+          const imageUrl = data.filePath;
+    
+          // Insert the image URL into the Quill editor at the current cursor position
+          var range = iframeRef.current.contentWindow.quill.getSelection();
+          iframeRef.current.contentWindow.quill.insertEmbed(range.index, 'image', imageUrl);
+          eventD.stopPropagation();
+           eventD.preventDefault();
+        })
+        .catch(error => {
+          console.log("Error uploading image:", error);
+        })
+        .finally(() => {
+          // Clean up by removing the input element after use
+          input.remove();
+          eventD.preventDefault();
+          eventD.stopPropagation();
+        });
+      };
     };
-  };
+    
   iframeRef.current.contentWindow.quill.getModule('toolbar').addHandler('image', ImageHandler);
+
+
+
+
     button.addEventListener("click", function () {
       var html = iframeRef.current.contentWindow.quill.root.innerHTML;
+      html =  html.replace("/static","https://app.mazzl.ae/static")
       setLoading(true);
       updateTextEditorData(projectId, activityId, editorId, {
         htmlCode: [

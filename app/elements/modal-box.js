@@ -188,7 +188,7 @@ export function ModalBox({
       <AlertDialogHeader>
         <AlertDialogTitle>Setup Modal Box</AlertDialogTitle>
         <AlertDialogDescription>
-          Configure your modal box with custom styles, buttons, and optional
+          Configure your modal box with custom styles, buttons, and optional also add "dark-close" , "light-close" to change icon colour
           custom code.
         </AlertDialogDescription>
       </AlertDialogHeader>

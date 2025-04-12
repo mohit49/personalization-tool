@@ -17,6 +17,9 @@ module.exports = {
     				xl: '6rem'
     			}
     		},
+			backgroundImage: {
+				'dark-gradient': 'linear-gradient(135deg, rgb(35, 37, 38), rgb(0, 0, 0))',
+			  },
     		fontFamily: {
     			head: [
     				'Kingthings Lickorishe',

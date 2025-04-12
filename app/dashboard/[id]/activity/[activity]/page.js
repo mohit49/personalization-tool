@@ -167,13 +167,16 @@ const VisualEditor = () => {
           iframeRef.current.contentDocument.createElement("div");
         const button =
           iframeRef.current.contentDocument.createElement("button");
+          const buttonHTML =
+          iframeRef.current.contentDocument.createElement("button");
         const textEditor =
           iframeRef.current.contentDocument.createElement("DIV");
         textEditor.classList.add("editor-tool");
         EditorDiv.classList.add("editor-div");
         button.textContent = "Apply Changes";
         button.classList.add("apply-changes");
-
+        buttonHTML.textContent = "Edit HTML";
+        buttonHTML.classList.add("edit-html");
         EditorDiv.style.minHeight = "300px";
         EditorDiv.style.marginBottom = "50px";
 
@@ -181,7 +184,7 @@ const VisualEditor = () => {
 
         EditorDiv.appendChild(textEditor);
         EditorDiv.appendChild(button);
-
+        EditorDiv.appendChild(buttonHTML);
         iframeRef.current.contentWindow.quill =
           new iframeRef.current.contentWindow.Quill(textEditor, {
             theme: "snow",
@@ -198,6 +201,7 @@ const VisualEditor = () => {
                 ["blockquote", "code-block"], // Block Styles
                 ["link", "image", "video"], // Media
                 ["clean"], // Clear Formatting
+                
               ],
             },
           });
@@ -454,7 +458,7 @@ const VisualEditor = () => {
   const addHoverHighlighting = (iframeDoc) => {
     const body = iframeDoc.body;
     const allElements = body.querySelectorAll(
-      "*:not(.editor-div):not(.non-editable):not(.non-editable *)"
+      "*:not(.editor-div):not(.non-editable):not(.non-editable *):not(.apply-changes *)"
     );
 
     allElements.forEach((element) => {
@@ -853,7 +857,7 @@ const VisualEditor = () => {
           onSave={handleSaveText}
         />
       )}
-      <Header />
+    
       {activity && (
         <div className="w-full bg-[#333333] py-[10px] px-[20px] flex flex-row items-center justify-between sticky top-0 z-10 ">
           <div className="w-[30%]">

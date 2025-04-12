@@ -8,43 +8,17 @@ const { sendEmailNotification } = require('../email/user-added');
 const router = express.Router();
 const externalFilePath = path.join(__dirname, '..', 'public/common/', 'externalFile.js');
 // ✅ Multer storage setup for dynamic folder creation
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const { projectName } = req.body;
-    if (!projectName) {
-      return cb(new Error("Project name is required"), null);
-    }
 
-    const dateFolder = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-    const uploadPath = `./public/uploads/${projectName.toLowerCase().replace(' ','-').trim()}/${dateFolder}/logo`;
-
-    // ✅ Ensure the directory exists
-    fs.mkdirSync(uploadPath, { recursive: true });
-
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage });
 
 // ➤ Create a new project with an uploaded image
-router.post("/project", authenticateToken, upload.single("image"), async (req, res) => {
+router.post("/project", authenticateToken, async (req, res) => {
   try {
     const { projectName, domain } = req.body;
-    if (!req.file) {
-      return res.status(400).json({ error: "Image is required" });
-    }
-
-    const dateFolder = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-    const imageURL = `/uploads/${projectName.toLowerCase().replace(" ", "-")}/${dateFolder}/logo/${req.file.filename}`;
+  
 
     const newProject = new Project({
       projectName,
       domain,
-      imageURL,
       createdBy: req.user.id, // Get user ID from authentication middleware
     });
 
@@ -54,29 +28,18 @@ router.post("/project", authenticateToken, upload.single("image"), async (req, r
     const projectId = newProject._id;  // Get the project ID
     const projectFileName = `${projectId}.js`;  // Name the file after the project ID
 
-    const jsContent = `
-      const project = {
-        id: "${projectId}",
-        name: "${projectName}",
-        domain: "${domain}",
-        imageURL: "${imageURL}",
-        createdAt: "${newProject.createdAt}"
-      };
-       ${externalContent}
-      console.log("Project Details:", project);
-      // Add any other logic or functionality you want in the JS file
-    `;
+    
 
-    const jsFilePath = path.join(__dirname, "..", "public/projects", projectName.toLowerCase().replace(' ','-').trim(), projectFileName);
+    const jsFilePath = path.join(__dirname, "..", "public/projects", projectId.toString(), projectFileName);
 
     // Ensure the "projects" folder exists
-    fs.mkdirSync(path.join(__dirname, "..", "public/projects", projectName.toLowerCase().replace(' ','-').trim()), { recursive: true });
+    fs.mkdirSync(path.join(__dirname, "..", "public/projects",  projectId.toString()), { recursive: true });
 
     // Write the JavaScript content to the file
-    fs.writeFileSync(jsFilePath, jsContent, "utf-8");
+  
 
     // Store the JS file path in the database
-    newProject.jsFilePath = jsFilePath;
+    newProject.jsFilePath = `https://app.mazzl.ae/api/projects/${projectId.toString()}.js`;
     await newProject.save();
 
     console.log(`JavaScript file created for project ${projectId}`);
@@ -130,15 +93,10 @@ router.get("/project/:id", authenticateToken, async (req, res) => {
 });
 
 // ➤ Update project by ID
-router.put("/project/:id", authenticateToken, upload.single("image"), async (req, res) => {
+router.put("/project/:id", authenticateToken, async (req, res) => {
   try {
     const { projectName, domain } = req.body;
-    let imageURL = null;
 
-    if (req.file) {
-      const dateFolder = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-      imageURL = `/uploads/${projectName}/${dateFolder}/logo/${req.file.filename}`;
-    }
 
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,

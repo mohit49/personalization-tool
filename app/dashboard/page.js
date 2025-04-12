@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { addProject, getProjects } from "../api/api";
+import { BlogLists, HomeBanner } from "@/app/static/DashBoard";
 import {
   Dialog,
   DialogContent,
@@ -56,31 +57,11 @@ export default function Dashboard() {
     defaultValues: {
       domain: "",
       projectname: "",
-      image: null,
+  
     },
   });
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
 
-    if (!file) return;
-
-    // ✅ Check if file is an image
-    if (!file.type.startsWith("image/")) {
-      form.setError("image", { message: "Please select a valid image file." });
-      return;
-    }
-
-    // ✅ Check if file size is within limit (200KB)
-    if (file.size > 204800) {
-      form.setError("image", { message: "File size should not exceed 200KB." });
-      return;
-    }
-
-    // ✅ Set image preview and form value
-    setPreviewImage(URL.createObjectURL(file));
-    form.setValue("image", file);
-  };
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -89,7 +70,7 @@ export default function Dashboard() {
 
     if (result.success) {
       form.reset();
-      setPreviewImage(null);
+    
       setOpen(false);
       setProjects((prevProjects) => [...prevProjects, result?.data?.project]);
     } else {
@@ -105,11 +86,13 @@ export default function Dashboard() {
         const result = await getProjects();
         if (result.length > 0) {
           setProjects(result);
+        } else {
+          setProjects([]);
         }
         setLoading(false);
       }
       fetchData();
-    }, [projects]);
+    }, []);
 
     if (loading) {
       return (
@@ -121,27 +104,32 @@ export default function Dashboard() {
     }
   return (
     <>
-      <Header />
-      <section className="w-full min-h-[700px] flex flex-col bg-[#f5f5f5] items-center justify-center pt-[50px] pb-[50px]">
-        {!projects ? (
+    
+      <section className="w-full min-h-[700px] flex flex-col bg-[#f5f5f5] items-center justify-start pt-[0px] pb-[50px]">
+        <HomeBanner />
+        {projects.length == 0 ? (
           <h1 className="text-3xl mb-[20px]">
             You haven't added any website. Please add a website to get started.
           </h1>
-        ) : (
+        ) : (<div className="flex flex-col justify-between items-left w-full px-[0px] container">
           <h1 className="text-3xl mb-[20px] font-bold">Your Projects</h1>
+          <p>Please create activities within the projects listed below that are relevant to your website. These activities may include implementing a popup modal, adding an image slider, inserting or updating website text, embedding an image banner, and other similar enhancements to improve the site's functionality and visual appeal.</p></div>
         )}
-        {projects && 
-        <div className="flex flex-col justify-between items-center w-full px-[20px] container">
+        {projects.length > 0 && 
+        <div className="flex flex-col justify-between items-center w-full px-[0px] container">
           <ProjectList projects={projects} />
         </div>}
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger className="bg-[#6a45f9] rounded-lg px-[30px] flex flex-row text-[#ffffff] py-[10px]" size="lg">
+          <DialogTrigger className="bg-dark-gradient flex text-white px-6 py-4 mt-[15px] rounded-md transition-all duration-300 ease-in-out shadow-md hover:shadow-xl hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed" size="lg">
             <PanelsTopLeft /> &nbsp; Add Project
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Project</DialogTitle>
-              <DialogDescription>
+              <DialogTitle>Add New Project
+
+               
+              </DialogTitle>
+              <div>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -171,14 +159,7 @@ export default function Dashboard() {
                       )}
                     />
 
-                    {/* ✅ Image Upload Field */}
-                    <FormItem>
-                      <FormLabel>Upload Image (Max: 200KB)</FormLabel>
-                      <FormControl>
-                        <Input type="file" accept="image/*" onChange={handleImageChange} className="h-[45px]" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                   
 
                     {/* ✅ Image Preview */}
                     {previewImage && (
@@ -187,7 +168,7 @@ export default function Dashboard() {
                       </div>
                     )}
 
-                    <Button type="submit" className="bg-[#6a45f9]" disabled={isLoading}>
+                    <Button type="submit" className="bg-dark-gradient" disabled={isLoading}>
                       {isLoading ? (
                         <ClipLoader color="white" size={24} />
                       ) : (
@@ -196,10 +177,12 @@ export default function Dashboard() {
                     </Button>
                   </form>
                 </Form>
-              </DialogDescription>
+              </div>
             </DialogHeader>
           </DialogContent>
         </Dialog>
+
+        <BlogLists/>
       </section>
     </>
   );

@@ -70,10 +70,12 @@
     "react-spinners": "^0.15.0",
     "react-use-outside-click": "^1.0.1",
     "request": "^2.88.2",
+    "sharp": "^0.34.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "uglify-js": "^3.19.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {

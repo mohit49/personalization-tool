@@ -49,7 +49,7 @@ export default function Header() {
 
   return (
     <>
-    <header className="w-full h-[80px] bg-[#6a45f9] flex">
+    <header className="w-full h-[80px] bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-300 py-10 flex">
       <div className="flex flex-row justify-between items-center w-full px-[0px] container">
         <Link href="#" className="font-brand text-5xl text-white">
           Prezify

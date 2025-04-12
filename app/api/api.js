@@ -80,14 +80,14 @@ export const fetchUserProfile = async () => {
 
 export async function addProject(projectData) {
   try {
-    const formData = new FormData();
-    formData.append("projectName", projectData.projectname);
-    formData.append("domain", projectData.domain);
-    if (projectData.image) {
-      formData.append("image", projectData.image);
-    }
+   
 
-    const response = await axios.post(`${apiUrl}/api/auth/project`, formData, {
+    const response = await axios.post(`${apiUrl}/api/auth/project`,
+      {
+      
+          "projectName": projectData.projectname,
+          "domain": projectData.domain,
+        
       withCredentials: true, // ✅ Sends cookies or authentication headers
       headers: {
         "Content-Type": "multipart/form-data", // ✅ Required for file upload
