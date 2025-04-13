@@ -32,7 +32,10 @@ function exicutePrezy() {
   quillCSS.rel = "stylesheet";
   document.head.appendChild(quillCSS);
   const common = document.createElement("link");
-  common.href = "https://app.mazzl.ae/static/uploads/common.css";
+  const mathRandomNumberFourDigit = Math.floor(
+    Math.random() * (9999 - 1000 + 1) + 1000
+  );
+  common.href = `https://app.mazzl.ae/static/uploads/common.css?cacheBurst=${mathRandomNumberFourDigit}`;
   common.rel = "stylesheet";
   document.head.appendChild(common);
 
@@ -75,9 +78,7 @@ function exicutePrezy() {
       display:flex;
       justizy-content:space-between;
     }
-    `
-  
-    ;
+    `;
     document.body.appendChild(defaultStyle2);
   }
   const injectScript = (ele) => {
@@ -156,7 +157,8 @@ function exicutePrezy() {
         buttonId = ele.settings.buttonId,
         buttonName = ele.settings.buttonName,
         customCOde = ele.settings.customCode,
-        popDelay = (ele.settings.delayMs?.length > 0 ? ele.settings.delayMs : "0") || 0,
+        popDelay =
+          (ele.settings.delayMs?.length > 0 ? ele.settings.delayMs : "0") || 0,
         initializeOnLoad = ele.settings.initializeOnLoad,
         inputOnElementExist = ele.settings.inputOnElementExist,
         popMaxHeight = ele.settings.maxHeight,
@@ -168,55 +170,128 @@ function exicutePrezy() {
         popBg = ele.settings.backGroundColor;
 
       const popDiv = document.createElement("DIV"),
-      popDivInner = document.createElement("DIV"),
+        popDivInner = document.createElement("DIV"),
         backDrop = document.createElement("DIV"),
         closeIcon = document.createElement("span"),
-      
-        classes = ["prezify-popup", "prezify-shadow", ...modalClassMutatid  , "hide" , !(mode == "editor") ? ele?.settings?.position : "NO-POSITION" , !(mode == "editor") ? ele?.settings?.animate ? "animate" : "no-animate" : "no-animate"];
-        closeIcon.classList.add("prezify-close-icon");
+        classes = [
+          "prezify-popup",
+          "prezify-shadow",
+          ...modalClassMutatid,
+          "hide",
+          !(mode == "editor") ? ele?.settings?.position : "NO-POSITION",
+          !(mode == "editor")
+            ? ele?.settings?.animate
+              ? "animate"
+              : "no-animate"
+            : "no-animate",
+        ];
+      closeIcon.classList.add("prezify-close-icon");
       closeIcon.innerHTML = `&times;`;
-      
+
       popDiv.classList.add(...classes);
-      backDrop.id = "backDrop-" + ele._id,
+      (backDrop.id = "backDrop-" + ele._id),
         backDrop.classList.add("prezify-modal-backdrop");
-        popDivInner.id = modalId;
-        popDiv.appendChild(popDivInner);
-        popDiv.append(closeIcon);
+      popDivInner.id = modalId;
+
+      popDiv.appendChild(popDivInner);
+      popDiv.append(closeIcon);
       document.querySelector(modalContainer).appendChild(popDiv);
-      if(ele.backDrop) {
-      document.querySelector(modalContainer).appendChild(backDrop);
+      if (ele.settings.backDrop) {
+        document.querySelector(modalContainer).appendChild(backDrop);
       }
 
       backDrop.classList.add("hide");
-popDiv.dataset.modelId = ele._id,
-      Object.assign(popDiv.style, {
-        backgroundColor: popBg,
-        maxWidth: popMaxWidth,
-        padding: "10px",
-        margin: "0 auto",
-        fontSize: "24px",
-        textAlign: "center",
-        maxHeight: popMaxHeight,
-        borderRadius: "10px",
-        boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;",
-      });
+      (popDiv.dataset.modelId = ele._id),
+        Object.assign(popDiv.style, {
+          backgroundColor: popBg,
+          maxWidth: popMaxWidth,
+          padding: "10px",
+          margin: "0 auto",
+          fontSize: "24px",
+          textAlign: "center",
+          maxHeight: popMaxHeight,
+          borderRadius: "10px",
+          boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;",
+        });
 
       closeIcon.addEventListener("click", function () {
         popDiv.classList.add("hide");
-        backDrop.classList.add("hide")
+        backDrop.classList.add("hide");
       });
 
-      if(ele?.settings?.initializeOnLoad) {
-
+      if (ele?.settings?.initializeOnLoad) {
         setTimeout(() => {
-          popDiv.classList.remove("hide")
-          backDrop.classList.remove("hide")
+          popDiv.classList.remove("hide");
+          backDrop.classList.remove("hide");
         }, popDelay);
-
       }
 
+      if (ele?.settings?.inputOnElementExist) {
+        const selector = ele?.settings?.inputOnElementExist;
+        const isClass = selector?.startsWith(".");
+        const isId = selector?.startsWith("#");
+        const selectorName = selector?.slice(1); // remove . or #
 
-      
+        const targetElement = document.querySelector(selector);
+        if (!targetElement) {
+          const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+              if (mutation.type === "childList") {
+                mutation.addedNodes.forEach((node) => {
+                  if (node.nodeType === 1) {
+                    // ELEMENT_NODE
+                    // Check if new node matches class or ID
+                    const isMatch = isClass
+                      ? node.classList?.contains(selectorName)
+                      : isId
+                      ? node.id === selectorName
+                      : false;
+
+                    if (isMatch) {
+                      popDiv.classList.remove("hide");
+                      backDrop.classList.remove("hide");
+                      return;
+                    }
+
+                    // Check inside newly added node
+                    const matches = node.querySelectorAll?.(selector);
+                    if (matches?.length > 0) {
+                      popDiv.classList.remove("hide");
+                      backDrop.classList.remove("hide");
+                      if (!ele?.settings?.continueObserve) {
+                        observer.disconnect(); // Stop observing once found
+                      }
+                    }
+                  }
+                });
+              } else if (mutation.type === "attributes" && (isClass || isId)) {
+                const target = mutation.target;
+                const isAttrMatch = isClass
+                  ? target.classList?.contains(selectorName)
+                  : isId
+                  ? target.id === selectorName
+                  : false;
+
+                if (isAttrMatch) {
+                  popDiv.classList.remove("hide");
+                  backDrop.classList.remove("hide");
+                  if (!ele?.settings?.continueObserve) {
+                    observer.disconnect(); // Stop observing once found
+                  }
+                }
+              }
+            }
+          });
+
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: isClass ? ["class"] : isId ? ["id"] : [],
+          });
+        }
+      }
+
       if (mode == "editor") {
         const headDiv = document.createElement("div");
         headDiv.classList.add("modal-heading");
@@ -246,10 +321,8 @@ popDiv.dataset.modelId = ele._id,
       } else {
         Object.assign(popDiv.style, {
           position: "fixed",
-         
-         
+
           zIndex: 1000,
-        
         });
         Object.assign(backDrop.style, {
           position: "fixed",
@@ -261,7 +334,6 @@ popDiv.dataset.modelId = ele._id,
           height: "100%",
           backgroundColor: overlayBg,
           zIndex: 999,
-         
         });
       }
     }
@@ -410,15 +482,13 @@ popDiv.dataset.modelId = ele._id,
   console.log("Project Details:", project);
   // Add any other logic or functionality you want in the JS file
 }
-window.parent.addEventListener("VecRender", function (){
+window.parent.addEventListener("VecRender", function () {
   if (window.location.host.includes("app.mazzl.ae")) {
     mode = "editor";
     initializeEditorPlugin();
     exicutePrezy();
   }
-
-})
- 
+});
 
 if (!window.location.host.includes("app.mazzl.ae")) {
   exicutePrezy();

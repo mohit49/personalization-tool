@@ -47,6 +47,9 @@ export function ModalBox({
   const [showOverlayPicker, setShowOverlayPicker] = useState(false);
   const [showButtonOptions, setShowButtonOptions] = useState(false);
   const [buttonId, setButtonId] = useState("");
+  const [buttonColor, setButtonColor] = useState("#ffffff");
+  const [buttonTextColour, setButtonTextColour] = useState("#000000");
+  const [ButrtonSize, setButtonSize] = useState("md");
   const [showCustomCode, setShowCustomCode] = useState(false);
   const [customCode, setCustomCode] = useState("");
 
@@ -58,6 +61,7 @@ export function ModalBox({
   const bgPickerRef = useRef(null);
   const overlayPickerRef = useRef(null);
   const [animate, setAnimate] = useState(false);
+  const [continueObserve, setContinueObserve] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -103,7 +107,11 @@ export function ModalBox({
                 responsive,
                 position,
                 backDrop,
-                animate
+                animate,
+                buttonColor,
+                buttonTextColour,
+                ButrtonSize,
+                continueObserve
               },
             },
           ],
@@ -141,7 +149,8 @@ export function ModalBox({
                 position,
                 responsive,
                 backDrop,
-                animate
+                animate,
+                continueObserve
               },
             },
           ],
@@ -178,6 +187,10 @@ export function ModalBox({
           setPosition(data?.activity?.settings?.position);
           setBackDrop(data?.activity?.settings?.backDrop);
           setAnimate(data?.activity?.settings?.animate);
+          setButtonColor(data?.activity?.settings?.buttonColor);
+          setButtonTextColour(data?.activity?.settings?.buttonTextColour);  
+          setButtonSize(data?.activity?.settings?.ButrtonSize);
+          setContinueObserve(data?.activity?.settings?.continueObserve);
         })
         .catch((error) => {
           console.error("Failed to fetch activity:", error);
@@ -202,6 +215,10 @@ export function ModalBox({
       setPosition("center");
       setBackDrop(false);
       setAnimate(false);
+      setButtonColor("#ffffff");
+      setButtonTextColour("#000000");
+      setButtonSize("md");
+      setContinueObserve(false);
     }
   }, [open]);
 
@@ -416,36 +433,24 @@ export function ModalBox({
             Enable Back Drop
           </label>
         </div>
+     
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="showButtonOptions"
-            checked={showButtonOptions}
-            onCheckedChange={setShowButtonOptions}
-          />
-          <label htmlFor="showButtonOptions" className="text-sm font-medium">
-            Show Button Options
-          </label>
-        </div>
-        {showButtonOptions && (
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              placeholder="Button ID"
-              value={buttonId}
-              onChange={(e) => setButtonId(e.target.value)}
-            />
-            <Input
-              placeholder="Button Name"
-              value={buttonName}
-              onChange={(e) => setButtonName(e.target.value)}
-            />
-          </div>
-        )}
-
-        <Input
+        <Input className="w-[300px]"
           placeholder="show on Element Exist"
           value={inputOnElementExist}
           onChange={(e) => setInputOnElementExist(e.target.value)}
         />
+         <div className="flex items-center gap-2">
+          <Checkbox
+            id="continueObserve"
+            checked={continueObserve}
+            onCheckedChange={setContinueObserve}
+          />
+          <label htmlFor="continueObserve" className="text-sm font-medium">
+            Continue Observe class/id 
+          </label>
+        </div>
+</div>
 
         <div className="flex items-center gap-2">
           <Checkbox
