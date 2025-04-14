@@ -37,6 +37,10 @@ export function ModalBox({
   const [minHeight, setMinHeight] = useState("");
   const [minWidth, setMinWidth] = useState("");
   const [buttonName, setButtonName] = useState("");
+const [showCustomCodeCss, setShowCustomCodeCss] = useState(false);
+const [customCodeCss, setCustomCodeCss] = useState("");
+const [customCodeHtml, setCustomCodeHtml] = useState("");
+const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
   const [backGroundColor, setBackgroundColor] = useState(
     "rgba(255, 255, 255, 1)"
   );
@@ -111,7 +115,11 @@ export function ModalBox({
                 buttonColor,
                 buttonTextColour,
                 ButrtonSize,
-                continueObserve
+                continueObserve,
+                showCustomCodeCss,
+                showCustomCodeHtml,
+                customCodeHtml,
+                customCodeCss
               },
             },
           ],
@@ -150,7 +158,12 @@ export function ModalBox({
                 responsive,
                 backDrop,
                 animate,
-                continueObserve
+                continueObserve,
+                showCustomCodeCss,
+                showCustomCodeHtml,
+                customCodeHtml,
+                customCodeCss
+
               },
             },
           ],
@@ -191,6 +204,10 @@ export function ModalBox({
           setButtonTextColour(data?.activity?.settings?.buttonTextColour);  
           setButtonSize(data?.activity?.settings?.ButrtonSize);
           setContinueObserve(data?.activity?.settings?.continueObserve);
+          setShowCustomCodeCss(data?.activity?.settings?.showCustomCodeCss);
+          setShowCustomCodeHtml(data?.activity?.settings?.showCustomCodeHtml);
+          setCustomCodeHtml(data?.activity?.settings?.customCodeHtml);
+          setCustomCodeCss(data?.activity?.settings?.customCodeCss);
         })
         .catch((error) => {
           console.error("Failed to fetch activity:", error);
@@ -219,6 +236,8 @@ export function ModalBox({
       setButtonTextColour("#000000");
       setButtonSize("md");
       setContinueObserve(false);
+      setShowCustomCodeCss(false);
+      setShowCustomCodeHtml(false);
     }
   }, [open]);
 
@@ -459,7 +478,7 @@ export function ModalBox({
             onCheckedChange={setShowCustomCode}
           />
           <label htmlFor="showCustomCode" className="text-sm font-medium">
-            Add Custom Code
+            Add Custom Code JS
           </label>
         </div>
         {showCustomCode && (
@@ -469,6 +488,44 @@ export function ModalBox({
             defaultLanguage="javascript"
             value={customCode}
             onChange={setCustomCode}
+          />
+        )}
+         <div className="flex items-center gap-2">
+          <Checkbox
+            id="showCustomCode"
+            checked={showCustomCodeCss}
+            onCheckedChange={setShowCustomCodeCss}
+          />
+          <label htmlFor="showCustomCode" className="text-sm font-medium">
+            Add Custom Code CSS
+          </label>
+        </div>
+        {showCustomCodeCss && (
+          <MonacoEditor
+            height="300px"
+            theme="vs-dark"
+            defaultLanguage="css"
+            value={customCodeCss}
+            onChange={setCustomCodeCss}
+          />
+        )}
+             <div className="flex items-center gap-2">
+          <Checkbox
+            id="showCustomCode"
+            checked={showCustomCodeHtml}
+            onCheckedChange={setShowCustomCodeHtml}
+          />
+          <label htmlFor="showCustomCode" className="text-sm font-medium">
+            Add Custom Code HTML
+          </label>
+        </div>
+        {showCustomCodeHtml && (
+          <MonacoEditor
+            height="300px"
+            theme="vs-dark"
+            defaultLanguage="html"
+            value={customCodeHtml}
+            onChange={setCustomCodeHtml}
           />
         )}
       </div>

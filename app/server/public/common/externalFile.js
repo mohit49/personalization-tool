@@ -91,13 +91,17 @@ function exicutePrezy() {
 
     if (ele?.type == "html-modified") {
       // Add a script content to change text based on the selector
-      scriptTag.innerHTML = `  
-          var element = document.querySelector('${ele.selector}');
-          if (element) {
-              element.innerHTML = \`<div data-id='${ele._id}'>${ele.newText}</div>\`;
-          }
+      scriptTag.innerHTML = `
+        var element = document.querySelector('${ele.selector}');
+        if (element) {
+            var newDiv = document.createElement('div');
+            newDiv.setAttribute('data-id', '${ele._id}');
+            newDiv.innerHTML = \`${ele.newText}\`;
+            element.appendChild(newDiv);
+        }
       `;
     }
+    
     if (ele?.type == "inserted-before") {
       scriptTag.innerHTML = `
           var element = document.querySelector('${ele.selector}');
@@ -196,6 +200,18 @@ function exicutePrezy() {
       popDiv.appendChild(popDivInner);
       popDiv.append(closeIcon);
       document.querySelector(modalContainer).appendChild(popDiv);
+      if (ele.settings.showCustomCodeCss) {
+        const style = document.createElement("style");
+        style.textContent = ele.settings.customCodeCss;
+        style.type = "text/css";
+        document.head.appendChild(style);
+      }
+      if (ele.settings.showCustomCodeHtml) {
+        const eleMen = document.createElement("div");
+        eleMen.innerHTML = ele.settings.customCodeHtml;
+        eleMen.classList.add("prezify-custom-html");
+        popDivInner.appendChild(eleMen);
+      }
       if (ele.settings.backDrop) {
         document.querySelector(modalContainer).appendChild(backDrop);
       }
@@ -289,6 +305,14 @@ function exicutePrezy() {
             attributes: true,
             attributeFilter: isClass ? ["class"] : isId ? ["id"] : [],
           });
+        }
+
+        if (ele.settings.showCustomCode) {
+          const script = document.createElement("script");
+          script.textContent = ele.settings.customCode;
+          script.type = "text/javascript";
+          // Append to the div
+          popDivInner.appendChild(script);
         }
       }
 
