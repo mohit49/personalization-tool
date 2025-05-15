@@ -81,7 +81,7 @@ function exicutePrezy() {
     `;
     document.body.appendChild(defaultStyle2);
   }
-  const injectScript = (ele) => {
+  const injectScript = (data, ele) => {
     var scriptTag = document.createElement("script");
     scriptTag.id = ele._id;
 
@@ -94,14 +94,21 @@ function exicutePrezy() {
       scriptTag.innerHTML = `
         var element = document.querySelector('${ele.selector}');
         if (element) {
+        debugger;
             var newDiv = document.createElement('div');
             newDiv.setAttribute('data-id', '${ele._id}');
             newDiv.innerHTML = \`${ele.newText}\`;
-            element.appendChild(newDiv);
+          const dropable = element.querySelector(".dropable-div");
+        if(element.querySelector(".dropable-div")) {
+        element.insertBefore(newDiv, dropable);
+        } else {
+           element.appendChild(newDiv);
+         }
+        
         }
       `;
     }
-    
+
     if (ele?.type == "inserted-before") {
       scriptTag.innerHTML = `
           var element = document.querySelector('${ele.selector}');
@@ -133,14 +140,35 @@ function exicutePrezy() {
     }
 
     if (ele?.type === "container-added") {
+      const columns = ele.settings.coloumns;
+
+      // Determine how many columns to create
+      const columnCountMap = {
+        one: 1,
+        two: 2,
+        three: 3,
+        four: 4,
+        five: 5,
+        six: 6,
+      };
+
+      const columnCount = columnCountMap[columns] || 1;
+
+      // Generate column divs as HTML
+      let columnDivs = "";
+      for (let i = 0; i < columnCount; i++) {
+        columnDivs += `<div  id="${
+          "personalized-element-" + mathRandomNumberFourDigit
+        }" class="column column-${i + 1}">${coloumn}</div>\n`;
+      }
+
+      // Build the script content
       scriptTag.innerHTML = `
         var element = document.querySelector('${ele.selector}');
         if (element) {
-         
-               element.innerHTML = \`${ele.newText}\`;
-            
+          element.innerHTML = \`<div class="${ele.settings.display} ${ele.settings.align} ${ele.settings.justify}  ${ele.settings.directions}" style=" gap: ${ele.settings.gap}">${columnDivs}</div>\`;
         }
-    `;
+      `;
     }
 
     if (ele?.type === "text-editor") {
@@ -221,7 +249,7 @@ function exicutePrezy() {
         Object.assign(popDiv.style, {
           backgroundColor: popBg,
           maxWidth: popMaxWidth,
-          padding: "10px",
+          padding: "0px",
           margin: "0 auto",
           fontSize: "24px",
           textAlign: "center",
@@ -240,6 +268,80 @@ function exicutePrezy() {
           popDiv.classList.remove("hide");
           backDrop.classList.remove("hide");
         }, popDelay);
+      }
+      if (ele?.settings?.exitIntent) {
+        function showPopupMain() {
+          popDiv.classList.remove("hide");
+          backDrop.classList.remove("hide");
+        }
+        const SHOW_DELAY_HOURS = ele?.settings?.cookiesHours; // 12 or 24
+        const INACTIVITY_TIMEOUT = ele?.settings?.inactiveDelay; // in seconds — set to 0 or undefined to disable inactivity
+        const ENABLE_EXIT_INTENT = true; // set to false to disable exit intent
+        const COOKIE_NAME = "exitIntentShown_" + ele._id;
+
+        let inactivityTimer = null;
+        let popupShown = false;
+
+        function setCookie(name, value, hours) {
+          const d = new Date();
+          d.setTime(d.getTime() + hours * 60 * 60 * 1000);
+          document.cookie = `${name}=${value}; expires=${d.toUTCString()}; path=/`;
+        }
+
+        function getCookie(name) {
+          const cookies = document.cookie.split(";");
+          for (let c of cookies) {
+            const [key, value] = c.trim().split("=");
+            if (key === name) return value;
+          }
+          return null;
+        }
+
+        function showPopup() {
+          if (popupShown || getCookie(COOKIE_NAME)) return;
+          showPopupMain();
+          popupShown = true;
+          setCookie(COOKIE_NAME, "true", SHOW_DELAY_HOURS);
+        }
+
+        // Conditional: Exit Intent
+        if (ENABLE_EXIT_INTENT) {
+          document.addEventListener("mouseout", function (e) {
+            if (e.clientY < 50) {
+              showPopup();
+            }
+          });
+        }
+
+        // Conditional: Inactivity Detection
+        if (
+          typeof INACTIVITY_TIMEOUT !== "undefined" &&
+          INACTIVITY_TIMEOUT > 0
+        ) {
+          function resetInactivityTimer() {
+            if (getCookie(COOKIE_NAME)) return;
+
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+
+            inactivityTimer = setTimeout(() => {
+              showPopup();
+            }, INACTIVITY_TIMEOUT * 1000);
+          }
+
+          function initInactivityDetection() {
+            const events = ["mousemove", "keydown", "touchstart", "scroll"];
+            events.forEach((evt) =>
+              window.addEventListener(evt, resetInactivityTimer, {
+                passive: true,
+              })
+            );
+            resetInactivityTimer();
+          }
+
+          if (!getCookie(COOKIE_NAME)) {
+            initInactivityDetection();
+          }
+        }
       }
 
       if (ele?.settings?.inputOnElementExist) {
@@ -317,11 +419,22 @@ function exicutePrezy() {
       }
 
       if (mode == "editor") {
+        const activityId = window.location.href.split("/").pop();
+        var currentActivity = false;
+        if (activityId == data._id) {
+          currentActivity = true;
+        } else {
+          popDiv.classList.add("non-configurable");
+        }
         const headDiv = document.createElement("div");
         headDiv.classList.add("modal-heading");
         headDiv.classList.add("non-editable");
         popDiv.classList.add("non-editable");
-        headDiv.innerHTML = `Modal ${modalName}`;
+        headDiv.innerHTML = `Modal ${modalName} ${
+          currentActivity
+            ? ""
+            : `<span>Note : This modal is not belongs to this activity so you cannot edit this please check <b>${data.activityName}</b> activity to eidt this modal</span>`
+        }`;
         Object.assign(headDiv.style, {
           backgroundColor: "#2c3e50",
           color: "#ffffff",
@@ -335,13 +448,13 @@ function exicutePrezy() {
         Object.assign(popDiv.style, {
           backgroundColor: popBg,
           maxWidth: popMaxWidth,
-          padding: "10px",
+          padding: "0px",
           margin: "0 auto",
           borderRadius: "10px",
         });
 
         popDiv.insertAdjacentHTML("beforebegin", headDiv.outerHTML);
-        popDivInner.innerHTML += coloumn;
+        popDivInner.innerHTML = popDivInner.innerHTML + coloumn;
       } else {
         Object.assign(popDiv.style, {
           position: "fixed",
@@ -368,7 +481,7 @@ function exicutePrezy() {
   const setActivity = (data) => {
     if (data?.htmlCode.length > 0) {
       data?.htmlCode.map((ele) => {
-        injectScript(ele);
+        injectScript(data, ele);
       });
     }
   };

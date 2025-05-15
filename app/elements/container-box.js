@@ -12,7 +12,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { fetchActivity , updateActivity, deleteCodeItem , fetchProjectById} from '@/app/api/api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
-
+ 
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+ 
 export function ContainerBox({ open, setOpen, eleData , activityId, projectId, setActivityData, loadWebsiteUrl }) {
     const [containerClass, setContainerClass] = useState("");
     const [containerId, setContainerId] = useState("");
@@ -21,6 +31,14 @@ export function ContainerBox({ open, setOpen, eleData , activityId, projectId, s
     const [minHeight, setMinHeight] = useState("");
     const [minWidth, setMinWidth] = useState("");
     const[backGroundColor, setBackgroundColor] = useState();
+    const[settings, setSettings] = useState({
+      coloumns  : "one",
+      directions : "flex-col",
+      align : "middle",
+    gap : "0",
+    display : "flex",
+    justify : "space-between",
+    });
     const [margin, setMargin] = useState({
         mt:"",
         ml:"",
@@ -75,7 +93,8 @@ if(containerClass) {
                 {
                   "type" : "container-added",
                   "selector":  "#"+eleData.eleMent,
-                  "newText": createdEle.outerHTML
+                  "newText": createdEle.outerHTML,
+                  "settings": settings
                 }
             ],
               
@@ -92,7 +111,14 @@ if(containerClass) {
               console.error("Update failed", error);
           });
 }
-})
+});
+
+const handleSettingChange = (key, value) => {
+  setSettings(prev => ({
+    ...prev,
+    [key]: value
+  }));
+};
   return (
 
 <AlertDialogContent>
@@ -146,8 +172,96 @@ if(containerClass) {
             />
 
 
+<Select onValueChange={(val) => handleSettingChange('coloumns', val)} defaultValue={settings.coloumns} >
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select Nos of coloumn" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>coloumns</SelectLabel>
+          <SelectItem value="one">One</SelectItem>
+          <SelectItem value="two">Two</SelectItem>
+          <SelectItem value="three">Three</SelectItem>
+          <SelectItem value="four">Four</SelectItem>
+          <SelectItem value="five">Five</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
 
-           
+    <Select onValueChange={(val) => handleSettingChange('display', val)} defaultValue={settings.display} >
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="SeSect Directions" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Display</SelectLabel>
+          <SelectItem value="flex">flex</SelectItem>
+<SelectItem value="grid">Grid</SelectItem>
+
+
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+
+    <Select onValueChange={(val) => handleSettingChange('directions', val)} defaultValue={settings.directions} >
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select Directions" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Directions</SelectLabel>
+          <SelectItem value="flex-col"> Col</SelectItem>
+          <SelectItem value="flex-row"> Row</SelectItem>
+          <SelectItem value="flex-row-reverse"> Row Reverse</SelectItem>
+          <SelectItem value="flex-col-reverse"> Col Reverse</SelectItem>
+          <SelectItem value="grid"> Grid</SelectItem>
+          <SelectItem value="grid-row"> Grid Row</SelectItem>
+          <SelectItem value="grid-col"> Grid Col</SelectItem>
+          <SelectItem value="grid-row-reverse"> Grid Row Reverse</SelectItem>
+          <SelectItem value="grid-col-reverse"> Grid Col Reverse</SelectItem>
+          
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+
+    <Select onValueChange={(val) => handleSettingChange('justify', val)} defaultValue={settings.justify} >
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Justify content" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Directions</SelectLabel>
+          <SelectItem value="space-between"> between</SelectItem>
+          <SelectItem value="space-around"> around</SelectItem>
+          <SelectItem value="space-evenly"> evenly</SelectItem>
+
+    
+          
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+    <Select onValueChange={(val) => handleSettingChange('align', val)} defaultValue={settings.align} >
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="SeSect Directions" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Align</SelectLabel>
+          <SelectItem value="start">Item Start</SelectItem>
+<SelectItem value="center">Item Center</SelectItem>
+<SelectItem value="end">Item End</SelectItem>
+<SelectItem value="stretch">Item Stretch</SelectItem>
+<SelectItem value="baseline">Item Baseline</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+    <Input
+              placeholder="Gap"
+             className="w-[45%] h-[40px]"
+              value={settings.gap}
+              onChange={(e) => handleSettingChange('gap' , e.target.value)}
+            />
+     
           </div>
           <div className="margin-div flex flex-wrap flex-row gap-[10px]">
           <Input

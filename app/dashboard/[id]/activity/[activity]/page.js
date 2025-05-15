@@ -177,8 +177,8 @@ const VisualEditor = () => {
         button.classList.add("apply-changes");
         buttonHTML.textContent = "Edit HTML";
         buttonHTML.classList.add("edit-html");
-        EditorDiv.style.minHeight = "300px";
-        EditorDiv.style.marginBottom = "50px";
+        EditorDiv.style.minHeight = "100px";
+        EditorDiv.style.marginBottom = "20px";
 
         targetEle.appendChild(EditorDiv);
 

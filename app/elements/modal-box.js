@@ -6,7 +6,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import MonacoEditor from "@monaco-editor/react";
 import { SketchPicker } from "react-color";
 import { updateActivity, fetchModal, updateModal } from "@/app/api/api";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { AppContext } from "@/app/context/provider"; // Import AppContext
 import {
   AlertDialogContent,
@@ -37,10 +42,10 @@ export function ModalBox({
   const [minHeight, setMinHeight] = useState("");
   const [minWidth, setMinWidth] = useState("");
   const [buttonName, setButtonName] = useState("");
-const [showCustomCodeCss, setShowCustomCodeCss] = useState(false);
-const [customCodeCss, setCustomCodeCss] = useState("");
-const [customCodeHtml, setCustomCodeHtml] = useState("");
-const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
+  const [showCustomCodeCss, setShowCustomCodeCss] = useState(false);
+  const [customCodeCss, setCustomCodeCss] = useState("");
+  const [customCodeHtml, setCustomCodeHtml] = useState("");
+  const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
   const [backGroundColor, setBackgroundColor] = useState(
     "rgba(255, 255, 255, 1)"
   );
@@ -66,7 +71,9 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
   const overlayPickerRef = useRef(null);
   const [animate, setAnimate] = useState(false);
   const [continueObserve, setContinueObserve] = useState(false);
-
+  const [exitIntent, setExitIntent] = useState(false);
+  const [inactiveDelay, setInactiveDelay] = useState();
+  const [cookiesHours, setCookiesHours] = useState();
   useEffect(() => {
     function handleClickOutside(event) {
       if (bgPickerRef.current && !bgPickerRef.current.contains(event.target)) {
@@ -119,7 +126,10 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
                 showCustomCodeCss,
                 showCustomCodeHtml,
                 customCodeHtml,
-                customCodeCss
+                customCodeCss,
+                exitIntent,
+                inactiveDelay,
+                cookiesHours,
               },
             },
           ],
@@ -162,8 +172,10 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
                 showCustomCodeCss,
                 showCustomCodeHtml,
                 customCodeHtml,
-                customCodeCss
-
+                customCodeCss,
+                exitIntent,
+                inactiveDelay,
+                cookiesHours,
               },
             },
           ],
@@ -201,13 +213,16 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
           setBackDrop(data?.activity?.settings?.backDrop);
           setAnimate(data?.activity?.settings?.animate);
           setButtonColor(data?.activity?.settings?.buttonColor);
-          setButtonTextColour(data?.activity?.settings?.buttonTextColour);  
+          setButtonTextColour(data?.activity?.settings?.buttonTextColour);
           setButtonSize(data?.activity?.settings?.ButrtonSize);
           setContinueObserve(data?.activity?.settings?.continueObserve);
           setShowCustomCodeCss(data?.activity?.settings?.showCustomCodeCss);
           setShowCustomCodeHtml(data?.activity?.settings?.showCustomCodeHtml);
           setCustomCodeHtml(data?.activity?.settings?.customCodeHtml);
           setCustomCodeCss(data?.activity?.settings?.customCodeCss);
+          setExitIntent(data?.activity?.settings?.exitIntent);
+          setCookiesHoursI(data?.activity?.settings?.cookiesHours);
+          setInactiveDelay(data?.activity?.settings?.inactiveDelay);
         })
         .catch((error) => {
           console.error("Failed to fetch activity:", error);
@@ -238,6 +253,7 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
       setContinueObserve(false);
       setShowCustomCodeCss(false);
       setShowCustomCodeHtml(false);
+      setExitIntent(false);
     }
   }, [open]);
 
@@ -329,38 +345,49 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
             </div>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="initializeOnLoad"
-            checked={initializeOnLoad}
-            onCheckedChange={setInitializeOnLoad}
-          />
-          <label htmlFor="initializeOnLoad" className="text-sm font-medium">
-            Initialize on Page Load
-          </label>
+        <div className="flex gap-[15px]">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="initializeOnLoad"
+              checked={initializeOnLoad}
+              onCheckedChange={setInitializeOnLoad}
+            />
+            <label htmlFor="initializeOnLoad" className="text-sm font-medium">
+              Initialize on Page Load
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="exitIntent"
+              checked={exitIntent}
+              onCheckedChange={setExitIntent}
+            />
+            <label htmlFor="exitIntent" className="text-sm font-medium">
+              Enable On Exit Intent
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="animateIfNotCenter"
+              checked={animate}
+              onCheckedChange={setAnimate}
+            />
+            <label htmlFor="animateIfNotCenter" className="text-sm font-medium">
+              Animate Popup if not center
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="responsive"
+              checked={responsive}
+              onCheckedChange={setResponsive}
+            />
+            <label htmlFor="responsive" className="text-sm font-medium">
+              Mobile Responsive
+            </label>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="initializeOnLoad"
-            checked={animate}
-            onCheckedChange={setAnimate}
-          />
-          <label htmlFor="initializeOnLoad" className="text-sm font-medium">
-           Animate Popup if not center
-          </label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="responsive"
-            checked={responsive}
-            onCheckedChange={setResponsive}
-          />
-          <label htmlFor="responsive" className="text-sm font-medium">
-            Mobile Responsive
-          </label>
-        </div>
         {initializeOnLoad && (
           <Input
             placeholder="Delay in Milliseconds"
@@ -369,7 +396,50 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
             onChange={(e) => setDelayMs(e.target.value)}
           />
         )}
-        <p>Pop Up Position</p>
+        {exitIntent && (
+          <div className="flex items-center gap-2">
+            <div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Input
+                      placeholder="24"
+                      type="number"
+                      value={cookiesHours}
+                      onChange={(e) => setCookiesHours(e.target.value)}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent className={"w-[250px]"}>
+                    <p>This Will Set cookies hours, if user has seen this popup, then poup will shown again after 24 hours only  </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Input
+                      placeholder="13"
+                      type="number"
+                      value={inactiveDelay}
+                      onChange={(e) => setInactiveDelay(e.target.value)}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent className={"w-[250px]"}>
+                    <p>This will trigger popup is user is inactive for below given time, 
+                      So if you want to show poup up after 30 seconds until user is inactive to the website , 
+                      If its blank then inactive functionality will not work</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        )}
+
+        <p>
+          <b>Pop Up Position</b>
+        </p>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
             <input
@@ -452,24 +522,25 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
             Enable Back Drop
           </label>
         </div>
-     
+
         <div className="flex items-center gap-2">
-        <Input className="w-[300px]"
-          placeholder="show on Element Exist"
-          value={inputOnElementExist}
-          onChange={(e) => setInputOnElementExist(e.target.value)}
-        />
-         <div className="flex items-center gap-2">
-          <Checkbox
-            id="continueObserve"
-            checked={continueObserve}
-            onCheckedChange={setContinueObserve}
+          <Input
+            className="w-[300px]"
+            placeholder="show on Element Exist"
+            value={inputOnElementExist}
+            onChange={(e) => setInputOnElementExist(e.target.value)}
           />
-          <label htmlFor="continueObserve" className="text-sm font-medium">
-            Continue Observe class/id 
-          </label>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="continueObserve"
+              checked={continueObserve}
+              onCheckedChange={setContinueObserve}
+            />
+            <label htmlFor="continueObserve" className="text-sm font-medium">
+              Continue Observe class/id
+            </label>
+          </div>
         </div>
-</div>
 
         <div className="flex items-center gap-2">
           <Checkbox
@@ -490,7 +561,7 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
             onChange={setCustomCode}
           />
         )}
-         <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Checkbox
             id="showCustomCode"
             checked={showCustomCodeCss}
@@ -509,7 +580,7 @@ const [showCustomCodeHtml, setShowCustomCodeHtml] = useState(false);
             onChange={setCustomCodeCss}
           />
         )}
-             <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Checkbox
             id="showCustomCode"
             checked={showCustomCodeHtml}
