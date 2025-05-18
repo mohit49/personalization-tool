@@ -24,6 +24,7 @@ import { TextBox } from "@/app/elements/text-box";
 import RichTextEditor from "@/app/elements/RichTextEditor";
 import { ModalBox } from "@/app/elements/modal-box";
 import {exicutesFunctions ,exicuteTextEditor} from "@/app/utils/utils";
+import { ModalBoxClickTrack } from "@/app/elements/modal-box-click-track";
 
 const VisualEditor = () => {
   const { modalEdited, setModalEdited, activity, setActivityData } =
@@ -46,6 +47,7 @@ const VisualEditor = () => {
   const [dBChanges, setDbChanges] = useState([]);
   const [activityBar, setActivityBar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+    const [openModalClick, setOpenModalClick] = useState(false);
   const [eleData, setEleData] = useState();
   const [open, setOpen] = useState(false);
   const [textBox, setTextBoxOpen] = useState();
@@ -828,7 +830,8 @@ const VisualEditor = () => {
       change?.type == "inserted-after" ||
       change?.type == "remove-element" ||
       change?.type == "container-added" ||
-      change?.type == "inserted-before"
+      change?.type == "inserted-before" ||
+      change?.type == "tracking-added"
     ) {
       changeType = "htmlCode";
     }
@@ -855,6 +858,9 @@ const VisualEditor = () => {
     setOpenModal(true);
    
   };
+  const AddModelBoxClickTrack =()=>{
+    setOpenModalClick(true);
+  }
   return (
     <>
       {currentText && (
@@ -959,6 +965,7 @@ const VisualEditor = () => {
               setActivityBar={setActivityBar}
               activityBar={activityBar}
               AddModelBox={AddModelBox}
+              AddModelBoxClickTrack={AddModelBoxClickTrack}
             />
           </div>
           <Dialog open={open} setOpen={setOpen}>
@@ -997,6 +1004,20 @@ const VisualEditor = () => {
               loadWebsiteUrl={loadWebsiteUrl}
             />
           </Dialog>
+           <Dialog open={openModalClick} setOpen={setOpenModalClick} className="z-[5]">
+            <ModalBoxClickTrack
+              open={openModalClick}
+              setModalid={setModalid}
+              setOpen={setOpenModalClick}
+              modalId={modalId}
+              eleData={eleData}
+              projectId={projectId}
+              activityId={activityId}
+              setActivityData={setActivityData}
+              loadWebsiteUrl={loadWebsiteUrl}
+            />
+          </Dialog>
+          
         </div>
       )}
     </>

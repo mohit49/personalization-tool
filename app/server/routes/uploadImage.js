@@ -67,7 +67,7 @@ router.delete("/project/:projectId/:activityId/code/:codeType/:index", authentic
   try {
     const { projectId, activityId, codeType, index } = req.params;
 
-    const validTypes = ["htmlCode", "cssCode", "jsCode", "jsonData"];
+    const validTypes = ["htmlCode", "cssCode", "jsCode", "jsonData", "tracking-added"];
     if (!validTypes.includes(codeType)) {
       return res.status(400).json({ message: "Invalid code type." });
     }

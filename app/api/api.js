@@ -428,9 +428,9 @@ export const deletActivity =async (projectId,activityId) => {
 };
 
 
-export const updateModal = async (projectId, activityId, modalId , activityData) => {
+export const updateModal = async (projectId, activityId, dataId , activityData) => {
   try {
-      const response = await axios.put(`${apiUrl}/api/auth/project/${projectId}/activity/${activityId}/modal/${modalId}`, activityData,  {
+      const response = await axios.put(`${apiUrl}/api/auth/project/${projectId}/activity/${activityId}/data/${dataId}`, activityData,  {
         withCredentials: true, // Sends cookies or authentication headers
         headers: {
           'Content-Type': 'application/json',

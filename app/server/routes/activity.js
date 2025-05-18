@@ -317,9 +317,9 @@ router.get("/project/:projectId/activity/:activityId",  async (req, res) => {
   }
 });
 
-router.get("/project/:projectId/activity/:activityId/modal/:modalId",  async (req, res) => {
+router.get("/project/:projectId/activity/:activityId/data/:dataId",  async (req, res) => {
   try {
-    const { projectId, activityId, modalId  } = req.params;
+    const { projectId, activityId, dataId  } = req.params;
 
     // Find the project to ensure it exists
     const project = await Project.findById(projectId);
@@ -333,9 +333,9 @@ router.get("/project/:projectId/activity/:activityId/modal/:modalId",  async (re
       return res.status(404).json({ message: "Activity not found or does not belong to the specified project." });
     }
 
-    const modalData = activity?.htmlCode.find(item => item._id.toString() === modalId);
+    const modalData = activity?.htmlCode.find(item => item._id.toString() === dataId);
     if (!modalData) {
-      return res.status(404).json({ message: "modal not found or does not belong to the specified project." });
+      return res.status(404).json({ message: "data not found or does not belong to the specified project." });
     }
     // Respond with the found activity
     res.status(200).json({
@@ -348,7 +348,7 @@ router.get("/project/:projectId/activity/:activityId/modal/:modalId",  async (re
   }
 });
 
-router.put("/project/:projectId/activity/:activityId/modal/:modalId",  async (req, res) => {
+router.put("/project/:projectId/activity/:activityId/data/:dataId",  async (req, res) => {
   try {
     const { projectId, activityId, modalId  } = req.params;
     const { htmlCode  } = req.body;
@@ -423,7 +423,7 @@ router.delete("/project/:projectId/:activityId/code/:codeType/:index", authentic
   try {
       const { projectId, activityId, codeType, index } = req.params;
 
-      const validTypes = ["htmlCode", "cssCode", "jsCode", "jsonData"];
+      const validTypes = ["htmlCode", "cssCode", "jsCode", "jsonData", "tracking-added"];
       if (!validTypes.includes(codeType)) {
           return res.status(400).json({ message: "Invalid code type." });
       }

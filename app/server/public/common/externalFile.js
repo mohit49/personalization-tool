@@ -1,5 +1,6 @@
 "use client";
 var mode;
+var apiDomain = "app.mazzle.ae";
 function initializeEditorPlugin() {
   const quillCSS = document.createElement("link");
   quillCSS.href =
@@ -25,7 +26,28 @@ function initializeEditorPlugin() {
   };
   document.body.appendChild(htmlEdit);
 }
+const requestOptions = {
+  method: "POST",
+  credentials: "include", // 🔥 this is mandatory
+};
 function exicutePrezy() {
+  fetch(`https://app.mazzl.ae/api/auth/ucid/${project.id}`, requestOptions)
+    .then((response) => response.text())
+    .then((result) => {
+      function setCookie(name, value, days = 365) {
+        let expires = "";
+        if (days) {
+          const d = new Date();
+          d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+          expires = "; expires=" + d.toUTCString();
+        }
+        document.cookie =
+          name + "=" + encodeURIComponent(value || "") + expires + "; path=/";
+      }
+      setCookie("ucid", JSON.parse( result).ucid); // Sets for 365 days
+      window.prezify = {"userId" : JSON.parse( result).ucid}
+    })
+    .catch((error) => console.error(error));
   const quillCSS = document.createElement("link");
   quillCSS.href =
     "https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css";
@@ -419,6 +441,7 @@ function exicutePrezy() {
       }
 
       if (mode == "editor") {
+        document.body.classList.add("prez-editor-mode");
         const activityId = window.location.href.split("/").pop();
         var currentActivity = false;
         if (activityId == data._id) {
@@ -473,6 +496,19 @@ function exicutePrezy() {
           zIndex: 999,
         });
       }
+    }
+    if (ele?.type === "tracking-added") {
+      const projectId = data.projectId;
+      const activityId = data._id;
+
+      const trackings = ele?.settings?.entries;
+      trackings.forEach((tracking) => {
+        if (tracking.event == "click") {
+          document
+            .querySelector(tracking.selector)
+            .addEventListener("click", function () {});
+        }
+      });
     }
 
     // Append the script tag to the body (or head) of the document

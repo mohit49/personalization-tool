@@ -20,6 +20,8 @@ const activityRoute = require("./routes/activity");
 const resetPasswprd = require("./routes/reset-password");
 const uploadImage = require("./routes/uploadImage")
 const getJs = require("./routes/getJs");
+const tracking = require("./routes/tracking");
+const ucidRegister = require("./routes/register-ucid");
 // Fetch URL for CORS & API proxy from environment
 const appUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'; // Default fallback
 
@@ -67,7 +69,9 @@ app.use("/", proxyRoute); // Proxy Route
 app.use("/auth", saveLaunchSettings); // Launch Settings API
 app.use("/auth", resetPasswprd); 
 app.use("/auth", uploadImage); 
+app.use("/auth", tracking); 
 app.use("/", getJs); 
+app.use("/auth", ucidRegister); 
 
 // Default route
 app.get("/", (req, res) => {
